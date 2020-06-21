@@ -14,7 +14,7 @@ ENV PATH /system/bin
 SHELL ["/system/bin/sh", "-c"]
 
 # Bootstrapping Termux environment.
-ADD https://termux.org/bootstrap-x86_64.zip /data/data/com.termux/files/bootstrap.zip
+ADD http://dl.bintray.com/termux/bootstrap/bootstrap-x86_64-v25.zip /data/data/com.termux/files/bootstrap.zip
 COPY x86_64/system /system
 COPY common/static-dns-hosts.txt /system/etc/static-dns-hosts.txt
 
