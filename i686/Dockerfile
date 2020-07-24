@@ -63,6 +63,13 @@ WORKDIR /data/data/com.termux/files/home
 USER 1000:1000
 ENV PATH /data/data/com.termux/files/usr/bin:/data/data/com.termux/files/usr/bin/applets
 
+# Symlink static dns things into Termux prefix.
+RUN ln -sf /system/bin/update-static-dns /data/data/com.termux/files/usr/bin/update-static-dns && \
+    ln -sf /system/etc/static-dns-hosts.txt /data/data/com.termux/files/usr/etc/static-dns-hosts.txt
+
+# Update static dns on shell session start.
+RUN echo "echo -e 'Updating static DNS:\n' && /system/bin/update-static-dns && echo" > /data/data/com.termux/files/home/.bashrc
+
 # Make sure static dns list is up-to-date.
 RUN /system/bin/update-static-dns
 
