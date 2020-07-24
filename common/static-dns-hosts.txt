@@ -8,3 +8,10 @@
 dl.bintray.com
 termux.net
 termux.org
+
+# Github:
+github.com
+codeload.github.com
+gist.github.com
+gist.githubusercontent.com
+raw.githubusercontent.com
