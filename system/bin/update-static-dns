@@ -1,0 +1,17 @@
+#!/system/bin/sh
+
+export PATH=/system/bin
+
+echo "127.0.0.1 localhost" > /system/etc/hosts
+echo "::1 ip6-localhost" >> /system/etc/hosts
+
+for host in $(busybox cat /system/etc/static-dns-hosts.txt | busybox grep -vE '^\s*#'); do
+	ip_addr=$(busybox nslookup -type=a "$host" 8.8.8.8 | busybox awk '/^Address: / { print $2 ; exit }')
+
+	if [ -z "$ip_addr" ]; then
+		echo "Can't resolve '$host'." >&2
+		exit 1
+	fi
+
+	echo "$ip_addr $host" | busybox tee -a /system/etc/hosts
+done

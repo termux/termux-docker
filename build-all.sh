@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-docker build -t 'xeffyr/termux:latest' -f i686/Dockerfile .
-docker build -t 'xeffyr/termux:x86_64' -f x86_64/Dockerfile .
+docker build -t 'xeffyr/termux:latest' -f Dockerfile.32bit .
+docker build -t 'xeffyr/termux:x86_64' -f Dockerfile.64bit .
 
 if [ "$(whoami)" = "xeffyr" ]; then
 	docker push 'xeffyr/termux:latest'
