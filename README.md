@@ -7,7 +7,7 @@ not be available (DalvikVM, OpenSLES, etc...).
 ## How to use
 
 1. Make sure that Docker is installed and running.
-2. `git clone https://github.com/xeffyr/termux-docker && cd ./termux-docker`
+2. `git clone https://github.com/termux/termux-docker && cd ./termux-docker`
 3. `./run.sh` or `./run-x86_64.sh` - if need x86_64 arch.
 
 You can use the image directly without startup script. For example:
