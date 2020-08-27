@@ -29,3 +29,14 @@ codeload.github.com
 gist.github.com
 gist.githubusercontent.com
 raw.githubusercontent.com
+
+# Python package manager (pip):
+pypi.org
+test.pypi.org
+upload.pypi.org
+pythonhosted.org
+files.pythonhosted.org
+test-files.pythonhosted.org
+
+# Ruby package manager (gem):
+rubygems.org
