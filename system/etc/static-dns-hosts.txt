@@ -40,3 +40,6 @@ test-files.pythonhosted.org
 
 # Ruby package manager (gem):
 rubygems.org
+
+# Node package manager (npm):
+registry.npmjs.org
