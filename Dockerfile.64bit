@@ -24,9 +24,11 @@ USER 1000:1000
 ENV PATH /data/data/com.termux/files/usr/bin
 
 # Install package updates.
+# Install package updates.
 RUN /system/bin/update-static-dns && \
     apt update && \
     yes | apt upgrade && \
-    rm -f /data/data/com.termux/files/usr/var/log/apt/*
+    rm -rf /data/data/com.termux/files/usr/var/log/apt/* && \
+    rm -rf /data/data/com.termux/cache/apt/*
 
 ENTRYPOINT /data/data/com.termux/files/usr/bin/login
