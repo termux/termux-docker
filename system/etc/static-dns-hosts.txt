@@ -44,3 +44,6 @@ index.rubygems.org
 
 # Node package manager (npm):
 registry.npmjs.org
+
+# Yarn package manager (yarn):
+registry.yarnpkg.com
