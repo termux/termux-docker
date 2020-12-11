@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
-sudo docker build -t 'xeffyr/termux:latest' -f Dockerfile.32bit .
-sudo docker build -t 'xeffyr/termux:x86_64' -f Dockerfile.64bit .
+if [ -n "${TERMUX_DOCKER_USE_SUDO-}" ]; then
+	SUDO="sudo"
+else
+	SUDO=""
+fi
+
+$SUDO docker build -t 'xeffyr/termux:latest' -f Dockerfile.32bit .
+$SUDO docker build -t 'xeffyr/termux:x86_64' -f Dockerfile.64bit .
 
 if [ "${1-}" = "publish" ]; then
-	sudo docker push 'xeffyr/termux:latest'
-	sudo docker push 'xeffyr/termux:x86_64'
+	$SUDO docker push 'xeffyr/termux:latest'
+	$SUDO docker push 'xeffyr/termux:x86_64'
 fi
