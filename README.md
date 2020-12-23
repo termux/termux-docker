@@ -1,4 +1,4 @@
-# Termux environment for Docker.
+# Termux environment for Docker/Podman.
 
 A [Termux](https://termux.com) i686 (x86_64) environment packaged into Docker image.
 Environment doesn't have Android runtime components, so certain things will
