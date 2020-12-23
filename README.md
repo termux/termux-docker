@@ -20,6 +20,21 @@ You can build Docker image yourself by running this script:
 ./build-all.sh
 ```
 
+### Using with podman
+
+If you have Podman instead of Docker, usage is nearly same.
+
+Building image:
+```
+./build-all.sh --podman
+```
+
+Running image:
+```
+./run.sh --podman
+./run-x86_64.sh --podman
+```
+
 ## Known issues
 
 There a number of known issues which may not be resolved:
