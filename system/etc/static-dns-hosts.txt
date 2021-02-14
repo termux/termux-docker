@@ -5,20 +5,29 @@
 ##
 
 # Termux repositories:
-dl.bintray.com
 termux.net
 termux.org
+
+# Bintray is deprecated and will be removed soon.
+dl.bintray.com
 
 # Termux mirrors:
 grimler.se
 termux.mentality.rip
+
+# Termux has mirror on IPFS.
+# Gateways copied from 'pkg'.
+ipfs.io
+ipfs.sloppyta.co
+ipfs.2read.net
+
+# Deprecated and will be removed soon.
 main.termux-mirror.ml
 games.termux-mirror.ml
 root.termux-mirror.ml
 science.termux-mirror.ml
 unstable.termux-mirror.ml
 x11.termux-mirror.ml
-its-pointless.termux-mirror.ml
 
 # Community repositories:
 its-pointless.github.io
