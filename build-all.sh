@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 OCI="docker"
 case $1 in
     -p|--podman) OCI="podman" ;;
