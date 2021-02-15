@@ -1,0 +1,15 @@
+#
+# Bionic loader config file.
+#
+
+dir.system = /system/bin/
+dir.system = /system/xbin/
+
+[system]
+namespace.default.isolated = false
+namespace.default.search.paths = /system/${LIB}
+namespace.default.permitted.paths = /system/${LIB}
+namespace.default.permitted.paths += /data
+namespace.default.asan.search.paths = /system/${LIB}
+namespace.default.asan.permitted.paths = /system
+namespace.default.asan.permitted.paths += /data

@@ -1,0 +1,57 @@
+##
+##  Termux Docker environment doesn't have working DNS resolver.
+##  This list contains domains that will be manually resolved. Result
+##  will be used to fill /system/etc/hosts.
+##
+
+# Termux repositories:
+termux.net
+termux.org
+
+# Bintray is deprecated and will be removed soon.
+dl.bintray.com
+
+# Termux mirrors:
+grimler.se
+termux.mentality.rip
+
+# Termux has mirror on IPFS.
+# Gateways copied from 'pkg'.
+10.via0.com
+ipfs.io
+
+# Deprecated and will be removed soon.
+main.termux-mirror.ml
+games.termux-mirror.ml
+root.termux-mirror.ml
+science.termux-mirror.ml
+unstable.termux-mirror.ml
+x11.termux-mirror.ml
+
+# Community repositories:
+its-pointless.github.io
+
+# Github:
+github.com
+codeload.github.com
+gist.github.com
+gist.githubusercontent.com
+raw.githubusercontent.com
+
+# Python package manager (pip):
+pypi.org
+test.pypi.org
+upload.pypi.org
+pythonhosted.org
+files.pythonhosted.org
+test-files.pythonhosted.org
+
+# Ruby package manager (gem):
+rubygems.org
+index.rubygems.org
+
+# Node package manager (npm):
+registry.npmjs.org
+
+# Yarn package manager (yarn):
+registry.yarnpkg.com
