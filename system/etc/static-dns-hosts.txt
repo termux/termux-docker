@@ -17,9 +17,8 @@ termux.mentality.rip
 
 # Termux has mirror on IPFS.
 # Gateways copied from 'pkg'.
+10.via0.com
 ipfs.io
-ipfs.sloppyta.co
-ipfs.2read.net
 
 # Deprecated and will be removed soon.
 main.termux-mirror.ml
