@@ -29,7 +29,7 @@ for arch in "${ARCHITECTURES[@]}"; do
 		-t 'docker.io/xeffyr/termux:'"$arch" \
 		-f Dockerfile \
 		--build-arg BOOTSTRAP_ARCH="$arch" \
-		--build-arg SYSTEM_TYPE="$SYSTEM_TYPE"
+		--build-arg SYSTEM_TYPE="$SYSTEM_TYPE" \
 		.
 	if [ "${1-}" = "publish" ]; then
 		$SUDO $OCI push 'docker.io/xeffyr/termux:'"$arch"
