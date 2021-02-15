@@ -28,15 +28,14 @@ jobs:
     - if: (matrix.CPU_ARCH == 'aarch64') || (matrix.CPU_ARCH == 'arm')
       run: docker run --rm --privileged aptman/qus -s -- -p ${{ matrix.CPU_ARCH }}
     - name: Build and push to Docker Hub
-      #env:
-      #  DOCKER_USER: xeffyr
-      #  DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      env:
+        DOCKER_USER: xeffyr
+        DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
       run: |
         SYSTEM_TYPE=x86
         if [ ${{ matrix.CPU_ARCH}} = aarch64 ] || [ ${{ matrix.CPU_ARCH = arm ]; then
           SYSTEM_TYPE=arm
         fi
-        #TODO: docker login --username "${DOCKER_USER}" --password "${DOCKER_TOKEN}"
         docker build -t docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }} \
           -f ./Dockerfile --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
           --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}"
