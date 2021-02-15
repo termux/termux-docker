@@ -1,0 +1,33 @@
+name: Build Docker image (test)
+
+on:
+  pull_request:
+
+env:
+  CI: true
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        CPU_ARCH:
+          - aarch64
+          - arm
+          - i686
+          - x86_64
+    steps:
+    - name: Clone repository
+      uses: actions/checkout@v2
+    - if: (matrix.CPU_ARCH == 'aarch64') || (matrix.CPU_ARCH == 'arm')
+      run: docker run --rm --privileged aptman/qus -s -- -p ${{ matrix.CPU_ARCH }}
+    - name: Build
+      run: |
+        SYSTEM_TYPE=x86
+        if [ ${{ matrix.CPU_ARCH }} = aarch64 ] || [ ${{ matrix.CPU_ARCH }} = arm ]; then
+          SYSTEM_TYPE=arm
+        fi
+        docker build -t docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }} \
+          -f ./Dockerfile --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
+          --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" .
