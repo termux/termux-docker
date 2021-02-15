@@ -20,7 +20,8 @@ SHELL ["/system/bin/sh", "-c"]
 # Bootstrapping Termux environment.
 ADD https://github.com/termux/termux-packages/releases/download/bootstrap-$BOOTSTRAP_VERSION/bootstrap-$BOOTSTRAP_ARCH.zip /data/data/com.termux/files/bootstrap.zip
 COPY /system/$SYSTEM_TYPE /system
-RUN /system/bin/busybox mkdir -p /qus && /system/bin/busybox ln -s /system/bin /qus/bin && /system/setup-termux.sh
+COPY /system/qemu-bin /qus/bin
+RUN /system/setup-termux.sh
 
 # Switch to Termux environment.
 WORKDIR /data/data/com.termux/files/home
