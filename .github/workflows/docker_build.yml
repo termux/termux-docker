@@ -1,0 +1,49 @@
+name: Build and push Docker image
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+env:
+  CI: true
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        CPU_ARCH:
+          - aarch64
+          - arm
+          - i686
+          - x86_64
+    steps:
+    - name: Clone repository
+      uses: actions/checkout@v2
+    - name: Setup binfmt_misc
+      if: (matrix.CPU_ARCH == 'aarch64') || (matrix.CPU_ARCH == 'arm')
+      run: docker run --rm --privileged aptman/qus -s -- -p aarch64 arm
+    - name: Login to Docker Hub
+      if: github.ref == 'refs/heads/master'
+      run: docker login --username "xeffyr" --password ${{ secrets.DOCKER_TOKEN }}
+    - name: Build images
+      run: |
+        SYSTEM_TYPE=x86
+        if [ ${{ matrix.CPU_ARCH }} = aarch64 ] || [ ${{ matrix.CPU_ARCH }} = arm ]; then
+          SYSTEM_TYPE=arm
+        fi
+        docker build -t docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }} \
+          -f ./Dockerfile --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
+          --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" .
+    - name: Push to Docker Hub
+      if: github.ref == 'refs/heads/master'
+      run: |
+        docker push docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }}
+        if [ ${{ matrix.CPU_ARCH }} = i686 ]; then
+          docker tag docker.io/xeffyr/termux:i686 docker.io/xeffyr/termux:latest
+          docker push docker.io/xeffyr/termux:latest
+        fi
