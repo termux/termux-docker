@@ -38,4 +38,4 @@ jobs:
         fi
         docker build -t docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }} \
           -f ./Dockerfile --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
-          --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}"
+          --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" .
