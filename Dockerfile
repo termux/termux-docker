@@ -2,6 +2,7 @@ FROM scratch
 
 ARG BOOTSTRAP_VERSION=2021.02.11-r1
 ARG BOOTSTRAP_ARCH=i686
+ARG SYSTEM_TYPE=x86
 
 ENV ANDROID_DATA     /data
 ENV ANDROID_ROOT     /system
@@ -18,7 +19,7 @@ SHELL ["/system/bin/sh", "-c"]
 
 # Bootstrapping Termux environment.
 ADD https://github.com/termux/termux-packages/releases/download/bootstrap-$BOOTSTRAP_VERSION/bootstrap-$BOOTSTRAP_ARCH.zip /data/data/com.termux/files/bootstrap.zip
-COPY /system /system
+COPY /system/$SYSTEM_TYPE /system
 RUN /system/setup-termux.sh
 
 # Switch to Termux environment.
