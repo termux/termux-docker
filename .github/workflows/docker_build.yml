@@ -33,7 +33,7 @@ jobs:
         DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
       run: |
         SYSTEM_TYPE=x86
-        if [ ${{ matrix.CPU_ARCH}} = aarch64 ] || [ ${{ matrix.CPU_ARCH = arm ]; then
+        if [ ${{ matrix.CPU_ARCH }} = aarch64 ] || [ ${{ matrix.CPU_ARCH }} = arm ]; then
           SYSTEM_TYPE=arm
         fi
         docker build -t docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }} \
