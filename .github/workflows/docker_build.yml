@@ -21,25 +21,36 @@ jobs:
           - i686
           - x86_64
     steps:
+
     - name: Clone repository
       uses: actions/checkout@v2
+
     - name: Setup binfmt_misc
       if: (matrix.CPU_ARCH == 'aarch64') || (matrix.CPU_ARCH == 'arm')
       run: docker run --rm --privileged aptman/qus -s -- -p aarch64 arm
-    - name: Login to Docker Hub
-      if: github.ref == 'refs/heads/master'
-      run: docker login --username "xeffyr" --password ${{ secrets.DOCKER_TOKEN }}
+
     - name: Build images
       run: |
-        SYSTEM_TYPE=x86
-        if [ ${{ matrix.CPU_ARCH }} = aarch64 ] || [ ${{ matrix.CPU_ARCH }} = arm ]; then
-          SYSTEM_TYPE=arm
-        fi
-        docker build -t docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }} \
-          -f ./Dockerfile --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
-          --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" .
+        case '${{ matrix.CPU_ARCH }}' in
+          arm|aarch64) SYSTEM_TYPE=arm;;
+          *) SYSTEM_TYPE=x86;;
+        esac
+        docker build -t \
+          docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }} \
+          -f ./Dockerfile \
+          --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
+          --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" \
+          .
+
+    - name: Login to Docker Hub
+      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
+      uses: docker/login-action@v1
+      with:
+        username: xeffyr
+        password: ${{ secrets.DOCKER_TOKEN }}
+
     - name: Push to Docker Hub
-      if: github.ref == 'refs/heads/master'
+      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
       run: |
         docker push docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }}
         if [ ${{ matrix.CPU_ARCH }} = i686 ]; then
