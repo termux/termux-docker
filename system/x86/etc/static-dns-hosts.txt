@@ -20,14 +20,6 @@ termux.mentality.rip
 10.via0.com
 ipfs.io
 
-# Deprecated and will be removed soon.
-main.termux-mirror.ml
-games.termux-mirror.ml
-root.termux-mirror.ml
-science.termux-mirror.ml
-unstable.termux-mirror.ml
-x11.termux-mirror.ml
-
 # Community repositories:
 its-pointless.github.io
 
