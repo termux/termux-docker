@@ -8,17 +8,18 @@
 termux.net
 termux.org
 
-# Bintray is deprecated and will be removed soon.
-dl.bintray.com
-
 # Termux mirrors:
+dl.kcubeterm.me
 grimler.se
 termux.mentality.rip
+mirrors.bfsu.edu.cn
+mirrors.tuna.tsinghua.edu.cn
+mirrors.ustc.edu.cn
 
 # Termux has mirror on IPFS.
-# Gateways copied from 'pkg'.
 10.via0.com
 ipfs.io
+k51qzi5uqu5dg9vawh923wejqffxiu9bhqlze5f508msk0h7ylpac27fdgaskx.ipns.dweb.link
 
 # Community repositories:
 its-pointless.github.io
