@@ -7,6 +7,7 @@
 # Termux repositories:
 termux.net
 termux.org
+packages.termux.org
 
 # Termux mirrors:
 dl.kcubeterm.me
