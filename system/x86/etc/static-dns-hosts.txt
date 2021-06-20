@@ -10,12 +10,14 @@ termux.org
 packages.termux.org
 
 # Termux mirrors:
+deb.kcubeterm.me
 dl.kcubeterm.me
 grimler.se
 termux.mentality.rip
 mirrors.bfsu.edu.cn
 mirrors.tuna.tsinghua.edu.cn
 mirrors.ustc.edu.cn
+packages.kcubeterm.me
 
 # Termux has mirror on IPFS.
 10.via0.com
@@ -30,6 +32,7 @@ github.com
 codeload.github.com
 gist.github.com
 gist.githubusercontent.com
+github-releases.githubusercontent.com
 raw.githubusercontent.com
 
 # Python package manager (pip):
