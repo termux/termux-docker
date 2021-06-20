@@ -17,6 +17,11 @@ mirrors.bfsu.edu.cn
 mirrors.tuna.tsinghua.edu.cn
 mirrors.ustc.edu.cn
 
+# Termux GH Mirror:
+deb.kcubeterm.me
+packages.kcubeterm.me
+github-releases.githubusercontent.com
+
 # Termux has mirror on IPFS.
 10.via0.com
 ipfs.io
