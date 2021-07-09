@@ -37,7 +37,7 @@ for arch in "${ARCHITECTURES[@]}"; do
 done
 
 if [ "$SYSTEM_TYPE" = "x86" ]; then
-	docker tag docker.io/xeffyr/termux:i686 docker.io/xeffyr/termux:latest
+	$SUDO $OCI tag docker.io/xeffyr/termux:i686 docker.io/xeffyr/termux:latest
 	if [ "${1-}" = "publish" ]; then
 		$SUDO $OCI push 'docker.io/xeffyr/termux:latest'
 	fi
