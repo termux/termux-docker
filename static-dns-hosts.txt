@@ -35,6 +35,9 @@ gist.githubusercontent.com
 github-releases.githubusercontent.com
 raw.githubusercontent.com
 
+# Perl:
+www.cpan.org
+
 # Python package manager (pip):
 pypi.org
 test.pypi.org
