@@ -2,7 +2,7 @@
 
 export PATH=/system/bin
 
-echo "127.0.0.1 localhost" > /system/etc/hosts
+echo "127.0.0.1 localhost $(hostname)" > /system/etc/hosts
 echo "::1 ip6-localhost" >> /system/etc/hosts
 
 for host in $(busybox cat /system/etc/static-dns-hosts.txt | busybox grep -vE '^\s*#'); do
