@@ -18,6 +18,7 @@ mirrors.bfsu.edu.cn
 mirrors.tuna.tsinghua.edu.cn
 mirrors.ustc.edu.cn
 packages.kcubeterm.me
+termux.astra.in.ua
 
 # Community repositories:
 its-pointless.github.io
