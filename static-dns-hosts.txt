@@ -8,6 +8,7 @@
 termux.net
 termux.org
 packages.termux.org
+packages-cf.termux.org
 
 # Termux mirrors:
 deb.kcubeterm.me
@@ -19,6 +20,7 @@ mirrors.tuna.tsinghua.edu.cn
 mirrors.ustc.edu.cn
 packages.kcubeterm.me
 termux.astra.in.ua
+mirror.bardia.tech
 
 # Community repositories:
 its-pointless.github.io
