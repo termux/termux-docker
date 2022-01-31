@@ -41,19 +41,3 @@ jobs:
           --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
           --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" \
           .
-
-    - name: Login to Docker Hub
-      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
-      uses: docker/login-action@v1
-      with:
-        username: xeffyr
-        password: ${{ secrets.DOCKER_TOKEN }}
-
-    - name: Push to Docker Hub
-      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
-      run: |
-        docker push docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }}
-        if [ ${{ matrix.CPU_ARCH }} = i686 ]; then
-          docker tag docker.io/xeffyr/termux:i686 docker.io/xeffyr/termux:latest
-          docker push docker.io/xeffyr/termux:latest
-        fi
