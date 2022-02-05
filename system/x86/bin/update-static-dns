@@ -10,7 +10,7 @@ for host in $(busybox cat /system/etc/static-dns-hosts.txt | busybox grep -vE '^
 
 	if [ -z "$ip_addr" ]; then
 		echo "Can't resolve '$host'." >&2
-		exit 1
+		continue
 	fi
 
 	echo "$ip_addr $host" | busybox tee -a /system/etc/hosts
