@@ -6,10 +6,10 @@ esac
 
 if [ "$(basename "$0")" = "run-x86_64.sh" ]; then
 	CONTAINER_NAME="termux-x86_64"
-	DOCKER_IMAGE_NAME="docker.io/xeffyr/termux:x86_64"
+	DOCKER_IMAGE_NAME="docker.io/kcubeterm/termux:x86_64"
 else
 	CONTAINER_NAME="termux-i686"
-	DOCKER_IMAGE_NAME="docker.io/xeffyr/termux:latest"
+	DOCKER_IMAGE_NAME="docker.io/kcubeterm/termux:latest"
 fi
 
 docker start "$CONTAINER_NAME" > /dev/null 2> /dev/null || {

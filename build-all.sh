@@ -26,19 +26,19 @@ esac
 
 for arch in "${ARCHITECTURES[@]}"; do
 	$SUDO $OCI build \
-		-t 'docker.io/xeffyr/termux:'"$arch" \
+		-t 'docker.io/kcubeterm/termux:'"$arch" \
 		-f Dockerfile \
 		--build-arg BOOTSTRAP_ARCH="$arch" \
 		--build-arg SYSTEM_TYPE="$SYSTEM_TYPE" \
 		.
 	if [ "${1-}" = "publish" ]; then
-		$SUDO $OCI push 'docker.io/xeffyr/termux:'"$arch"
+		$SUDO $OCI push 'docker.io/kcubeterm/termux:'"$arch"
 	fi
 done
 
 if [ "$SYSTEM_TYPE" = "x86" ]; then
-	$SUDO $OCI tag docker.io/xeffyr/termux:i686 docker.io/xeffyr/termux:latest
+	$SUDO $OCI tag docker.io/kcubeterm/termux:i686 docker.io/kcubeterm/termux:latest
 	if [ "${1-}" = "publish" ]; then
-		$SUDO $OCI push 'docker.io/xeffyr/termux:latest'
+		$SUDO $OCI push 'docker.io/kcubeterm/termux:latest'
 	fi
 fi
