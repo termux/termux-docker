@@ -36,8 +36,24 @@ jobs:
           *) SYSTEM_TYPE=x86;;
         esac
         docker build -t \
-          docker.io/xeffyr/termux:${{ matrix.CPU_ARCH }} \
+          docker.io/kcubeterm/termux:${{ matrix.CPU_ARCH }} \
           -f ./Dockerfile \
           --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
           --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" \
           .
+
+    - name: Login to Docker Hub
+      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
+      uses: docker/login-action@v1
+      with:
+        username: kcubeterm
+        password: ${{ secrets.KCUBETERM_DOCKER_TOKEN }}
+
+    - name: Push to Docker Hub
+      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
+      run: |
+        docker push docker.io/kcubeterm/termux:${{ matrix.CPU_ARCH }}
+        if [ ${{ matrix.CPU_ARCH }} = i686 ]; then
+          docker tag docker.io/kcubeterm/termux:i686 docker.io/kcubeterm/termux:latest
+          docker push docker.io/kcubeterm/termux:latest
+        fi
