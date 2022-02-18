@@ -27,6 +27,7 @@ its-pointless.github.io
 
 # Github:
 github.com
+objects.githubusercontent.com
 codeload.github.com
 gist.github.com
 gist.githubusercontent.com
