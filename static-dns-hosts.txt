@@ -12,13 +12,14 @@ packages-cf.termux.org
 
 # Termux mirrors:
 deb.kcubeterm.me
-dl.kcubeterm.me
+dl.kcubeterm.com
 grimler.se
 termux.mentality.rip
 mirrors.bfsu.edu.cn
 mirrors.tuna.tsinghua.edu.cn
 mirrors.ustc.edu.cn
 packages.kcubeterm.me
+packages.kcubeterm.com
 termux.astra.in.ua
 mirror.bardia.tech
 
