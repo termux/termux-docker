@@ -5,8 +5,26 @@ export PATH=/system/bin
 echo "127.0.0.1 localhost $(busybox hostname)" > /system/etc/hosts
 echo "::1 ip6-localhost" >> /system/etc/hosts
 
+# IPv4
 for host in $(busybox cat /system/etc/static-dns-hosts.txt | busybox grep -vE '^\s*#'); do
 	ip_addr=$(busybox nslookup -type=a "$host" 8.8.8.8 | busybox awk '/^Address: / { print $2 ; exit }')
+
+	if [ -z "$ip_addr" ]; then
+		echo "Can't resolve '$host'." >&2
+		continue
+	fi
+
+	echo "$ip_addr $host" | busybox tee -a /system/etc/hosts
+done
+
+# Check whether IPv6 is available.
+busybox wget http://[2606:4700:4700::1111] >/dev/null 2>&1
+if [[ $? != 0 ]]; then
+	exit
+fi
+# IPv6
+for host in $(busybox cat /system/etc/static-dns-hosts.txt | busybox grep -vE '^\s*#'); do
+	ip_addr=$(busybox nslookup -type=aaaa "$host" 2001:4860:4860::8888 | busybox awk '/^Address: / { print $2 ; exit }')
 
 	if [ -z "$ip_addr" ]; then
 		echo "Can't resolve '$host'." >&2
