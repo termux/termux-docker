@@ -35,6 +35,13 @@ RUN busybox mkdir -p /data/data/com.termux/files && \
     busybox ln -s /data/data/com.termux/files/usr/bin /bin && \
     busybox ln -s /data/data/com.termux/files/usr/tmp /tmp
 
+# Link some utilities to busybox.
+# Some utilities in $PREFIX are actually a wrapper of the same binary
+# from /system/bin. See termux-tools/build.sh#L29.
+RUN for tool in df mount ping ping6 top umount; do \
+        busybox ln -s /system/bin/busybox /system/bin/$tool; \
+    done
+
 # Set ownership and file access modes:
 # * User content is owned by 1000:1000.
 # * Termux file modes are set only for user.
