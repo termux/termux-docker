@@ -50,24 +50,25 @@ RUN busybox chown -Rh 0:0 /system && \
     cd /data/data/com.termux/files/usr && \
     busybox find ./bin ./lib/apt ./lib/bash ./libexec -type f -exec busybox chmod 700 "{}" \;
 
-# Use utilities from Termux and switch user to non-root.
-ENV PATH /data/data/com.termux/files/usr/bin
-SHELL ["/data/data/com.termux/files/usr/bin/sh", "-c"]
+# Switch user to non-root.
 USER 1000:1000
 
 # Update static DNS cache on login. Also symlink script and host list to prefix.
 RUN echo "echo -e 'Updating static DNS:\n' && /system/bin/update-static-dns && echo" \
     > /data/data/com.termux/files/home/.bashrc && \
-    ln -s /system/bin/update-static-dns /data/data/com.termux/files/usr/bin/update-static-dns && \
-    ln -s /system/etc/static-dns-hosts.txt /data/data/com.termux/files/usr/etc/static-dns-hosts.txt
+    busybox ln -s /system/bin/update-static-dns /data/data/com.termux/files/usr/bin/update-static-dns && \
+    busybox ln -s /system/etc/static-dns-hosts.txt /data/data/com.termux/files/usr/etc/static-dns-hosts.txt
 
-# Update static DNS cache, install updates and cleanup.
-RUN /system/bin/update-static-dns && \
+# Update static DNS cache, install updates and cleanup when not building for arm.
+ENV PATH /data/data/com.termux/files/usr/bin
+RUN if [ ${BOOTSTRAP_ARCH} == 'arm' ]; then exit; else \
+    update-static-dns && \
     apt update && \
     apt upgrade -o Dpkg::Options::=--force-confnew -yq && \
     rm -rf /data/data/com.termux/files/usr/var/lib/apt/* && \
     rm -rf /data/data/com.termux/files/usr/var/log/apt/* && \
-    rm -rf /data/data/com.termux/cache/apt/*
+    rm -rf /data/data/com.termux/cache/apt/* ;\
+    fi
 
 ##############################################################################
 # Create final image.

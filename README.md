@@ -40,8 +40,7 @@ Running image:
 There a number of known issues which may not be resolved:
 
 * ARM containers may require a custom seccomp profile to remove restrictions from
-  `personality()` system call. Whereas Docker Hub contains prebuilt ARM image, it
-  is outdated and won't receive updates anymore.
+  `personality()` system call.
 
 * DNS: Docker image has to use a static DNS resolver through `/system/etc/hosts`.
   You can regenerate this file by editing `/system/etc/static-dns-hosts.txt` and

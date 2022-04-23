@@ -18,6 +18,7 @@ jobs:
       matrix:
         CPU_ARCH:
           - aarch64
+          - arm
           - i686
           - x86_64
     steps:
