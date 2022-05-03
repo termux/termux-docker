@@ -2,7 +2,7 @@
 # Bootstrap Termux environment.
 FROM scratch AS bootstrap
 
-ARG BOOTSTRAP_VERSION=2022.04.24-r1
+ARG BOOTSTRAP_VERSION=2022.05.01-r1%2Bapt-android-7
 ARG BOOTSTRAP_ARCH=i686
 ARG SYSTEM_TYPE=x86
 
