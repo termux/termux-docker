@@ -3,8 +3,9 @@
 set -e
 
 OCI="docker"
+OCI_ARG=""
 case $1 in
-	-p|--podman) OCI="podman" ;;
+	-p|--podman) OCI="podman" ; OCI_ARG="--format docker" ;;
 esac
 
 if [ -n "${TERMUX_DOCKER_USE_SUDO-}" ]; then
@@ -26,6 +27,7 @@ esac
 
 for arch in "${ARCHITECTURES[@]}"; do
 	$SUDO $OCI build \
+		${OCI_ARG} \
 		-t 'termux/termux-docker:'"$arch" \
 		-f Dockerfile \
 		--build-arg BOOTSTRAP_ARCH="$arch" \
