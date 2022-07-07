@@ -12,7 +12,7 @@ not be available (DalvikVM, OpenSLES, etc...).
 
 You can use the image directly without startup script. For example:
 ```
-docker run -it kcubeterm/termux:latest
+docker run -it termux/termux-docker:latest
 ```
 
 You can build Docker image yourself by running this script:
