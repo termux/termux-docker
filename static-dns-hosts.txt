@@ -9,6 +9,8 @@ termux.net
 termux.org
 packages.termux.org
 packages-cf.termux.org
+packages.termux.dev
+packages-cf.termux.dev
 
 # Termux mirrors:
 deb.kcubeterm.me
@@ -25,6 +27,7 @@ mirror.bardia.tech
 
 # Community repositories:
 its-pointless.github.io
+termux-pod.github.io
 
 # Github:
 github.com
