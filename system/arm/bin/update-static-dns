@@ -18,7 +18,7 @@ for host in $(busybox cat /system/etc/static-dns-hosts.txt | busybox grep -vE '^
 done
 
 # Check whether IPv6 is available.
-busybox wget http://[2606:4700:4700::1111] >/dev/null 2>&1
+busybox wget http://[2606:4700:4700::1111] -O /dev/null -o /dev/null
 if [[ $? != 0 ]]; then
 	exit
 fi
