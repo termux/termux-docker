@@ -33,11 +33,14 @@ jobs:
     - name: Build images
       run: |
         case '${{ matrix.CPU_ARCH }}' in
-          arm|aarch64) SYSTEM_TYPE=arm;;
-          *) SYSTEM_TYPE=x86;;
+          arm)     SYSTEM_TYPE=arm; PLATFORM_TAG="linux/arm/v7";;
+          aarch64) SYSTEM_TYPE=arm; PLATFORM_TAG="linux/arm64";;
+          i686)    SYSTEM_TYPE=x86; PLATFORM_TAG="linux/386";;
+          *)       SYSTEM_TYPE=x86; PLATFORM_TAG="linux/amd64";;
         esac
-        docker build -t \
+        docker buildx build -t \
           termux/termux-docker:${{ matrix.CPU_ARCH }} \
+          --platform "$PLATFORM_TAG" \
           --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
           --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" \
           .
