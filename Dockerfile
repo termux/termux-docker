@@ -2,7 +2,7 @@
 # Bootstrap Termux environment.
 FROM scratch AS bootstrap
 
-ARG BOOTSTRAP_VERSION=2022.08.28-r1%2Bapt-android-7
+ARG BOOTSTRAP_VERSION=2022.10.02-r1%2Bapt-android-7
 ARG BOOTSTRAP_ARCH=i686
 ARG SYSTEM_TYPE=x86
 
@@ -55,7 +55,7 @@ RUN busybox chown -Rh 0:0 /system && \
     busybox find /data -type d -exec busybox chmod 755 "{}" \; && \
     busybox find /data/data/com.termux/files -type f -o -type d -exec busybox chmod g-rwx,o-rwx "{}" \; && \
     cd /data/data/com.termux/files/usr && \
-    busybox find ./bin ./lib/apt ./lib/bash ./libexec -type f -exec busybox chmod 700 "{}" \;
+    busybox find ./bin ./lib/apt ./libexec -type f -exec busybox chmod 700 "{}" \;
 
 # Switch user to non-root.
 USER 1000:1000
