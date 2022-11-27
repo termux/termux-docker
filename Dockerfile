@@ -66,6 +66,10 @@ RUN echo "echo -e 'Updating static DNS:\n' && /system/bin/update-static-dns && e
     busybox ln -s /system/bin/update-static-dns /data/data/com.termux/files/usr/bin/update-static-dns && \
     busybox ln -s /system/etc/static-dns-hosts.txt /data/data/com.termux/files/usr/etc/static-dns-hosts.txt
 
+# Create empty user static DNS cache (external bind)
+RUN busybox touch /data/data/com.termux/files/home/.static-dns-hosts.txt && \
+    busybox chown 1000:1000 /data/data/com.termux/files/home/.static-dns-hosts.txt
+
 # Update static DNS cache, install updates and cleanup when not building for arm.
 ENV PATH /data/data/com.termux/files/usr/bin
 RUN if [ ${BOOTSTRAP_ARCH} == 'arm' ]; then exit; else \
