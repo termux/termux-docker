@@ -6,7 +6,7 @@ echo "127.0.0.1 localhost $(busybox hostname)" > /system/etc/hosts
 echo "::1 ip6-localhost" >> /system/etc/hosts
 
 # IPv4
-for host in $(busybox cat /system/etc/static-dns-hosts.txt /data/data/com.termux/files/home/.static-dns-hosts.txt | busybox grep -vE '^\s*#'); do
+for host in $(busybox cat /system/etc/static-dns-hosts.txt /data/data/com.termux/files/home/.docker/static-dns-hosts.txt | busybox grep -vE '^\s*#'); do
 	ip_addr=$(busybox nslookup -type=a "$host" 8.8.8.8 | busybox awk '/^Address: / { print $2 ; exit }')
 
 	if [ -z "$ip_addr" ]; then
@@ -23,7 +23,7 @@ if [[ $? != 0 ]]; then
 	exit
 fi
 # IPv6
-for host in $(busybox cat /system/etc/static-dns-hosts.txt /data/data/com.termux/files/home/.static-dns-hosts.txt | busybox grep -vE '^\s*#'); do
+for host in $(busybox cat /system/etc/static-dns-hosts.txt /data/data/com.termux/files/home/.docker/static-dns-hosts.txt | busybox grep -vE '^\s*#'); do
 	ip_addr=$(busybox nslookup -type=aaaa "$host" 2001:4860:4860::8888 | busybox awk '/^Address: / { print $2 ; exit }')
 
 	if [ -z "$ip_addr" ]; then
