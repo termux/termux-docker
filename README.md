@@ -44,7 +44,8 @@ There a number of known issues which may not be resolved:
 
 * DNS: Docker image has to use a static DNS resolver through `/system/etc/hosts`.
   You can regenerate this file by editing `/system/etc/static-dns-hosts.txt` or
-  `/data/data/com.termux/files/home/.static-dns-hosts.txt` (for docker binds) and
+  `/data/data/com.termux/files/home/.docker/static-dns-hosts.txt` (aka
+  `~/.docker/static-dns-hosts.txt) (this is preferable for docker binds) and
   executing script `/system/bin/update-static-dns`.
 
 * When running certain multi threaded program in 32bit containers, the PIDs can 
