@@ -67,8 +67,9 @@ RUN echo "echo -e 'Updating static DNS:\n' && /system/bin/update-static-dns && e
     busybox ln -s /system/etc/static-dns-hosts.txt /data/data/com.termux/files/usr/etc/static-dns-hosts.txt
 
 # Create empty user static DNS cache (external bind)
-RUN busybox touch /data/data/com.termux/files/home/.docker/static-dns-hosts.txt && \
-    busybox chown 1000:1000 /data/data/com.termux/files/home/.docker/static-dns-hosts.txt
+RUN busybox mkdir -p /data/data/com.termux/files/home/.termux/termux-docker/ && \
+    busybox touch /data/data/com.termux/files/home/.termux/termux-docker/static-dns-hosts.txt && \
+    busybox chown 1000:1000 /data/data/com.termux/files/home/.termux/termux-docker/static-dns-hosts.txt
 
 # Update static DNS cache, install updates and cleanup when not building for arm.
 ENV PATH /data/data/com.termux/files/usr/bin
