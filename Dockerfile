@@ -54,18 +54,16 @@ RUN busybox chown -Rh 0:0 /system && \
     cd /data/data/com.termux/files/usr && \
     busybox find ./bin ./lib/apt ./libexec -type f -exec busybox chmod 700 "{}" \;
 
-# Switch user to non-root.
-#USER 1000:1000
-
 # Update static DNS cache, install updates and cleanup when not building for arm.
-#ENV PATH /data/data/com.termux/files/usr/bin
-#RUN if [ ${BOOTSTRAP_ARCH} == 'arm' ]; then exit; else \
-#    apt update && \
-#    apt upgrade -o Dpkg::Options::=--force-confnew -yq && \
-#    rm -rf /data/data/com.termux/files/usr/var/lib/apt/* && \
-#    rm -rf /data/data/com.termux/files/usr/var/log/apt/* && \
-#    rm -rf /data/data/com.termux/cache/apt/* ;\
-#    fi
+ENV PATH /data/data/com.termux/files/usr/bin
+RUN if [ ${BOOTSTRAP_ARCH} == 'arm' ]; then exit; else \
+    /system/bin/dnsmasq -u root -g root & sleep 1 && \
+    su - system -c "/data/data/com.termux/files/usr/bin/apt update" && \
+    su - system -c "/data/data/com.termux/files/usr/bin/apt upgrade -o Dpkg::Options::=--force-confnew -yq" && \
+    rm -rf /data/data/com.termux/files/usr/var/lib/apt/* && \
+    rm -rf /data/data/com.termux/files/usr/var/log/apt/* && \
+    rm -rf /data/data/com.termux/cache/apt/* ;\
+    fi
 
 ##############################################################################
 # Create final image.
