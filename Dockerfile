@@ -13,6 +13,9 @@ ENV PATH /system/bin
 # Copy libc, linker and few utilities.
 COPY /system/$SYSTEM_TYPE /system
 
+# Copy entrypoint script.
+COPY /entrypoint.sh /entrypoint.sh
+
 # Extract bootstrap archive and create symlinks.
 ADD https://github.com/termux/termux-packages/releases/download/bootstrap-$BOOTSTRAP_VERSION/bootstrap-$BOOTSTRAP_ARCH.zip /bootstrap.zip
 RUN busybox mkdir -p /data/data/com.termux/files && \
@@ -84,4 +87,5 @@ WORKDIR /data/data/com.termux/files/home
 SHELL ["/data/data/com.termux/files/usr/bin/sh", "-c"]
 USER 1000:1000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/data/data/com.termux/files/usr/bin/login"]
