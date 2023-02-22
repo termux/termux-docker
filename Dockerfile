@@ -34,7 +34,7 @@ RUN busybox mkdir -p /data/data/com.termux/files && \
 # Link some utilities to busybox.
 # Some utilities in $PREFIX are actually a wrapper of the same binary
 # from /system/bin. See termux-tools/build.sh#L29.
-RUN for tool in df mount ping ping6 top umount; do \
+RUN for tool in df mount ping ping6 su top umount; do \
         busybox ln -s /system/bin/busybox /system/bin/$tool; \
     done
 
@@ -44,6 +44,8 @@ RUN for tool in df mount ping ping6 top umount; do \
 # * Rest is owned by root and has 755/644 modes.
 RUN busybox chown -Rh 0:0 /system && \
     busybox chown -Rh 1000:1000 /data/data/com.termux && \
+    busybox ln -s /system/etc/passwd /etc/passwd && \
+    busybox ln -s /system/etc/group /etc/group && \
     busybox find /system -type d -exec busybox chmod 755 "{}" \; && \
     busybox find /system -type f -executable -exec busybox chmod 755 "{}" \; && \
     busybox find /system -type f ! -executable -exec busybox chmod 644 "{}" \; && \
