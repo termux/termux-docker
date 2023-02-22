@@ -85,7 +85,6 @@ COPY --from=bootstrap / /
 
 WORKDIR /data/data/com.termux/files/home
 SHELL ["/data/data/com.termux/files/usr/bin/sh", "-c"]
-USER 1000:1000
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/data/data/com.termux/files/usr/bin/login"]
