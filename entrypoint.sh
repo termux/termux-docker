@@ -1,7 +1,7 @@
 #!/system/bin/sh
 
 if [ "$(id -u)" = "0" ] && [ -z "$(/system/bin/busybox pidof dnsmasq)" ]; then
-	/system/bin/sh -T /dev/ptmx -c "/system/bin/dnsmasq -u root -g root --pid-file /dnsmasq.pid" >/dev/null 2>&1
+	/system/bin/mksh -T /dev/ptmx -c "/system/bin/dnsmasq -u root -g root --pid-file /dnsmasq.pid" >/dev/null 2>&1
 	sleep 1
 	if [ -z "$(/system/bin/busybox pidof dnsmasq)" ]; then
 		echo "[!] Failed to start dnsmasq, host name resolution may fail." >&2
