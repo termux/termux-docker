@@ -17,17 +17,17 @@ else
 	fi
 fi
 
-if [ $# -ge 1 ]; then
-	exec /system/bin/su - -s /data/data/com.termux/files/usr/bin/env system -- \
-		ANDROID_DATA="$ANDROID_DATA" \
-		ANDROID_ROOT="$ANDROID_ROOT" \
-		HOME="$HOME" \
-		LANG="$LANG" \
-		PATH="$PATH" \
-		PREFIX="$PREFIX" \
-		TMPDIR="$TMPDIR" \
-		TZ=UTC \
-		"$@"
-else
-	exec /data/data/com.termux/files/usr/bin/login
+if [ $# -lt 1 ]; then
+	set -- /data/data/com.termux/files/usr/bin/login
 fi
+
+exec /system/bin/su -s /data/data/com.termux/files/usr/bin/env system -- \
+	ANDROID_DATA="$ANDROID_DATA" \
+	ANDROID_ROOT="$ANDROID_ROOT" \
+	HOME="$HOME" \
+	LANG="$LANG" \
+	PATH="$PATH" \
+	PREFIX="$PREFIX" \
+	TMPDIR="$TMPDIR" \
+	TZ=UTC \
+	"$@"
