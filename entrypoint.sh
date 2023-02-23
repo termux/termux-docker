@@ -22,6 +22,7 @@ if [ $# -lt 1 ]; then
 fi
 
 exec /system/bin/su -s /data/data/com.termux/files/usr/bin/env system -- \
+	-i \
 	ANDROID_DATA="$ANDROID_DATA" \
 	ANDROID_ROOT="$ANDROID_ROOT" \
 	HOME="$HOME" \
