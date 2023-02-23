@@ -57,9 +57,9 @@ RUN busybox chown -Rh 0:0 /system && \
     cd /data/data/com.termux/files/usr && \
     busybox find ./bin ./lib/apt ./libexec -type f -exec busybox chmod 700 "{}" \;
 
-# Update static DNS cache, install updates and cleanup when not building for arm.
+# Install updates and cleanup when not building for arm.
 ENV PATH /data/data/com.termux/files/usr/bin
-RUN if [ ${BOOTSTRAP_ARCH} == 'arm' ]; then exit; else \
+RUN if [ ${SYSTEM_TYPE} = 'arm' ]; then exit; else \
     /system/bin/mksh -T /dev/ptmx -c "/system/bin/dnsmasq -u root -g root --pid-file /dnsmasq.pid" && sleep 1 && \
     su - system -c "/data/data/com.termux/files/usr/bin/apt update" && \
     su - system -c "/data/data/com.termux/files/usr/bin/apt upgrade -o Dpkg::Options::=--force-confnew -yq" && \
