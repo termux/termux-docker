@@ -11,14 +11,23 @@ if [ "$(id -u)" = "0" ]; then
 else
 	echo "[!] Container is running as non-root, unable to start dnsmasq. DNS will be unavailable." >&2
 	if [ $# -ge 1 ]; then
-		exec /data/data/com.termux/files/usr/bin/bash -c "$@"
+		exec "$@"
 	else
 		exec /data/data/com.termux/files/usr/bin/login
 	fi
 fi
 
 if [ $# -ge 1 ]; then
-	exec /system/bin/su - system -c "/data/data/com.termux/files/usr/bin/bash -c \"$@\""
+	exec /system/bin/su - -s /data/data/com.termux/files/usr/bin/env system -- \
+		ANDROID_DATA="$ANDROID_DATA" \
+		ANDROID_ROOT="$ANDROID_ROOT" \
+		HOME="$HOME" \
+		LANG="$LANG" \
+		PATH="$PATH" \
+		PREFIX="$PREFIX" \
+		TMPDIR="$TMPDIR" \
+		TZ=UTC \
+		"$@"
 else
 	exec /data/data/com.termux/files/usr/bin/login
 fi
