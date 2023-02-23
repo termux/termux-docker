@@ -15,6 +15,7 @@ COPY /system/$SYSTEM_TYPE /system
 
 # Copy entrypoint script.
 COPY /entrypoint.sh /entrypoint.sh
+COPY /entrypoint_root.sh /entrypoint_root.sh
 
 # Extract bootstrap archive and create symlinks.
 ADD https://github.com/termux/termux-packages/releases/download/bootstrap-$BOOTSTRAP_VERSION/bootstrap-$BOOTSTRAP_ARCH.zip /bootstrap.zip
