@@ -94,6 +94,20 @@ Usage example:
 docker run -it --entrypoint /entrypoint_root.sh termux/termux-docker:latest
 ```
 
+## Building image
+
+Docker:
+
+```.sh
+./build-all.sh
+```
+
+Podman:
+
+```.sh
+./build-all.sh --podman
+```
+
 ## Known issues
 
 There a number of known issues which may not be resolved:
