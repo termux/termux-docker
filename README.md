@@ -117,4 +117,4 @@ There a number of known issues which may not be resolved:
 
 * When running certain multi threaded program in 32bit containers, the PIDs can 
   balloon and easily exceed libc's limit. The only way to fix this is to set 
-  `/proc/sys/kernel/pid_max` to 65536. See [termux-docker#40](https://github.com/termux/termux-docker/issues/40).
+  `/proc/sys/kernel/pid_max` to 65535. See [termux-docker#40](https://github.com/termux/termux-docker/issues/40).
