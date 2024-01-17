@@ -2,6 +2,8 @@ name: Build and push Docker image
 
 on:
   push:
+    branches:
+    - master
   pull_request:
   schedule:
     - cron: '0 2 * * 0'
@@ -60,3 +62,23 @@ jobs:
           docker tag termux/termux-docker:i686 termux/termux-docker:latest
           docker push termux/termux-docker:latest
         fi
+
+    - name: Export container as tar archive
+      if: always()
+      run: |
+        docker run \
+          --privileged \
+          --name termux-docker-${{ matrix.CPU_ARCH }} \
+          termux/termux-docker:${{ matrix.CPU_ARCH }} \
+          uname -a
+        docker stop termux-docker-${{ matrix.CPU_ARCH }}
+        docker export -o termux-docker-${{ matrix.CPU_ARCH }}.tar \
+          termux-docker-${{ matrix.CPU_ARCH }}
+        sha256sum termux-docker-${{ matrix.CPU_ARCH }}.tar
+
+    - name: Store tar archive
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: termux-docker-${{ matrix.CPU_ARCH }}-${{ github.sha }}
+        path: termux-docker-${{ matrix.CPU_ARCH }}.tar
