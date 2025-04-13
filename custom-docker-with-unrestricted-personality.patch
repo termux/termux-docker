@@ -1,0 +1,320 @@
+This removes all restrictions from the personality() system call from within Docker, and
+is only necessary on some specific devices, including some ARM devices but not all ARM devices,
+and only when the --privileged and --security-opt arguments are either not working or not desired,
+which sometimes happens. This patch is designed for the docker.io package version 20.10.24 in
+Debian bookworm: https://packages.debian.org/bookworm/docker.io, but also works when rebased on other
+versions of Docker.
+
+--- a/engine/oci/fixtures/default-old-format.json
++++ b/engine/oci/fixtures/default-old-format.json
+@@ -824,38 +824,7 @@
+     {
+       "name": "personality",
+       "action": "SCMP_ACT_ALLOW",
+-      "args": [
+-        {
+-          "index": 0,
+-          "value": 0,
+-          "valueTwo": 0,
+-          "op": "SCMP_CMP_EQ"
+-        }
+-      ]
+-    },
+-    {
+-      "name": "personality",
+-      "action": "SCMP_ACT_ALLOW",
+-      "args": [
+-        {
+-          "index": 0,
+-          "value": 8,
+-          "valueTwo": 0,
+-          "op": "SCMP_CMP_EQ"
+-        }
+-      ]
+-    },
+-    {
+-      "name": "personality",
+-      "action": "SCMP_ACT_ALLOW",
+-      "args": [
+-        {
+-          "index": 0,
+-          "value": 4294967295,
+-          "valueTwo": 0,
+-          "op": "SCMP_CMP_EQ"
+-        }
+-      ]
++      "args": []
+     },
+     {
+       "name": "pipe",
+--- a/engine/oci/fixtures/default.json
++++ b/engine/oci/fixtures/default.json
+@@ -403,82 +403,7 @@
+ 				"personality"
+ 			],
+ 			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 0,
+-					"valueTwo": 0,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
+-			"comment": "",
+-			"includes": {},
+-			"excludes": {}
+-		},
+-		{
+-			"names": [
+-				"personality"
+-			],
+-			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 8,
+-					"valueTwo": 0,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
+-			"comment": "",
+-			"includes": {},
+-			"excludes": {}
+-		},
+-		{
+-			"names": [
+-				"personality"
+-			],
+-			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 131072,
+-					"valueTwo": 0,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
+-			"comment": "",
+-			"includes": {},
+-			"excludes": {}
+-		},
+-		{
+-			"names": [
+-				"personality"
+-			],
+-			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 131080,
+-					"valueTwo": 0,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
+-			"comment": "",
+-			"includes": {},
+-			"excludes": {}
+-		},
+-		{
+-			"names": [
+-				"personality"
+-			],
+-			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 4294967295,
+-					"valueTwo": 0,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
++			"args": [],
+ 			"comment": "",
+ 			"includes": {},
+ 			"excludes": {}
+--- a/engine/profiles/seccomp/default.json
++++ b/engine/profiles/seccomp/default.json
+@@ -422,77 +422,7 @@
+ 				"personality"
+ 			],
+ 			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 0,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
+-			"comment": "",
+-			"includes": {},
+-			"excludes": {}
+-		},
+-		{
+-			"names": [
+-				"personality"
+-			],
+-			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 8,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
+-			"comment": "",
+-			"includes": {},
+-			"excludes": {}
+-		},
+-		{
+-			"names": [
+-				"personality"
+-			],
+-			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 131072,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
+-			"comment": "",
+-			"includes": {},
+-			"excludes": {}
+-		},
+-		{
+-			"names": [
+-				"personality"
+-			],
+-			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 131080,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
+-			"comment": "",
+-			"includes": {},
+-			"excludes": {}
+-		},
+-		{
+-			"names": [
+-				"personality"
+-			],
+-			"action": "SCMP_ACT_ALLOW",
+-			"args": [
+-				{
+-					"index": 0,
+-					"value": 4294967295,
+-					"op": "SCMP_CMP_EQ"
+-				}
+-			],
++			"args": [],
+ 			"comment": "",
+ 			"includes": {},
+ 			"excludes": {}
+--- a/engine/profiles/seccomp/default_linux.go
++++ b/engine/profiles/seccomp/default_linux.go
+@@ -424,57 +424,7 @@ func DefaultProfile() *Seccomp {
+ 		{
+ 			Names:  []string{"personality"},
+ 			Action: specs.ActAllow,
+-			Args: []*specs.LinuxSeccompArg{
+-				{
+-					Index: 0,
+-					Value: 0x0,
+-					Op:    specs.OpEqualTo,
+-				},
+-			},
+-		},
+-		{
+-			Names:  []string{"personality"},
+-			Action: specs.ActAllow,
+-			Args: []*specs.LinuxSeccompArg{
+-				{
+-					Index: 0,
+-					Value: 0x0008,
+-					Op:    specs.OpEqualTo,
+-				},
+-			},
+-		},
+-		{
+-			Names:  []string{"personality"},
+-			Action: specs.ActAllow,
+-			Args: []*specs.LinuxSeccompArg{
+-				{
+-					Index: 0,
+-					Value: 0x20000,
+-					Op:    specs.OpEqualTo,
+-				},
+-			},
+-		},
+-		{
+-			Names:  []string{"personality"},
+-			Action: specs.ActAllow,
+-			Args: []*specs.LinuxSeccompArg{
+-				{
+-					Index: 0,
+-					Value: 0x20008,
+-					Op:    specs.OpEqualTo,
+-				},
+-			},
+-		},
+-		{
+-			Names:  []string{"personality"},
+-			Action: specs.ActAllow,
+-			Args: []*specs.LinuxSeccompArg{
+-				{
+-					Index: 0,
+-					Value: 0xffffffff,
+-					Op:    specs.OpEqualTo,
+-				},
+-			},
++			Args:   []*specs.LinuxSeccompArg{},
+ 		},
+ 		{
+ 			Names: []string{
+--- a/engine/profiles/seccomp/fixtures/default-old-format.json
++++ b/engine/profiles/seccomp/fixtures/default-old-format.json
+@@ -824,38 +824,7 @@
+     {
+       "name": "personality",
+       "action": "SCMP_ACT_ALLOW",
+-      "args": [
+-        {
+-          "index": 0,
+-          "value": 0,
+-          "valueTwo": 0,
+-          "op": "SCMP_CMP_EQ"
+-        }
+-      ]
+-    },
+-    {
+-      "name": "personality",
+-      "action": "SCMP_ACT_ALLOW",
+-      "args": [
+-        {
+-          "index": 0,
+-          "value": 8,
+-          "valueTwo": 0,
+-          "op": "SCMP_CMP_EQ"
+-        }
+-      ]
+-    },
+-    {
+-      "name": "personality",
+-      "action": "SCMP_ACT_ALLOW",
+-      "args": [
+-        {
+-          "index": 0,
+-          "value": 4294967295,
+-          "valueTwo": 0,
+-          "op": "SCMP_CMP_EQ"
+-        }
+-      ]
++      "args": []
+     },
+     {
+       "name": "pipe",
+

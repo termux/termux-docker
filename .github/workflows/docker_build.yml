@@ -14,38 +14,29 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
-  main:
-    runs-on: ubuntu-latest
+  generate:
     strategy:
       matrix:
-        CPU_ARCH:
-          - aarch64
-          - arm
-          - i686
-          - x86_64
+        include:
+          - runner: ubuntu-24.04
+            architecture: i686
+          - runner: ubuntu-24.04
+            architecture: x86_64
+          - runner: ubuntu-24.04-arm
+            architecture: arm
+          - runner: ubuntu-24.04-arm
+            architecture: aarch64
+    runs-on: ${{ matrix.runner }}
     steps:
+
+    - name: Set architecture variable
+      run: echo "TERMUX_ARCH=${{ matrix.architecture }}" >> $GITHUB_ENV
 
     - name: Clone repository
       uses: actions/checkout@v4
 
-    - name: Setup binfmt_misc
-      if: (matrix.CPU_ARCH == 'aarch64') || (matrix.CPU_ARCH == 'arm')
-      run: docker run --rm --privileged aptman/qus -s -- -p aarch64 arm
-
-    - name: Build images
-      run: |
-        case '${{ matrix.CPU_ARCH }}' in
-          arm)     SYSTEM_TYPE=arm; PLATFORM_TAG="linux/arm/v7";;
-          aarch64) SYSTEM_TYPE=arm; PLATFORM_TAG="linux/arm64";;
-          i686)    SYSTEM_TYPE=x86; PLATFORM_TAG="linux/386";;
-          *)       SYSTEM_TYPE=x86; PLATFORM_TAG="linux/amd64";;
-        esac
-        docker buildx build -t \
-          termux/termux-docker:${{ matrix.CPU_ARCH }} \
-          --platform "$PLATFORM_TAG" \
-          --build-arg BOOTSTRAP_ARCH=${{ matrix.CPU_ARCH }} \
-          --build-arg SYSTEM_TYPE="${SYSTEM_TYPE}" \
-          .
+    - name: Build image
+      run: ./generate.sh
 
     - name: Login to Docker Hub
       if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
@@ -57,9 +48,8 @@ jobs:
     - name: Push to Docker Hub
       if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
       run: |
-        docker push termux/termux-docker:${{ matrix.CPU_ARCH }}
-        if [ ${{ matrix.CPU_ARCH }} = i686 ]; then
-          docker tag termux/termux-docker:i686 termux/termux-docker:latest
+        docker push termux/termux-docker:${{ env.TERMUX_ARCH }}
+        if [ ${{ env.TERMUX_ARCH }} = x86_64 ]; then
           docker push termux/termux-docker:latest
         fi
 
@@ -67,18 +57,17 @@ jobs:
       if: always()
       run: |
         docker run \
-          --privileged \
-          --name termux-docker-${{ matrix.CPU_ARCH }} \
-          termux/termux-docker:${{ matrix.CPU_ARCH }} \
+          --name termux-docker-${{ env.TERMUX_ARCH }} \
+          termux/termux-docker:${{ env.TERMUX_ARCH }} \
           uname -a
-        docker stop termux-docker-${{ matrix.CPU_ARCH }}
-        docker export -o termux-docker-${{ matrix.CPU_ARCH }}.tar \
-          termux-docker-${{ matrix.CPU_ARCH }}
-        sha256sum termux-docker-${{ matrix.CPU_ARCH }}.tar
+        docker stop termux-docker-${{ env.TERMUX_ARCH }}
+        docker export -o termux-docker-${{ env.TERMUX_ARCH }}.tar \
+          termux-docker-${{ env.TERMUX_ARCH }}
+        sha256sum termux-docker-${{ env.TERMUX_ARCH }}.tar
 
     - name: Store tar archive
       if: always()
       uses: actions/upload-artifact@v5
       with:
-        name: termux-docker-${{ matrix.CPU_ARCH }}-${{ github.sha }}
-        path: termux-docker-${{ matrix.CPU_ARCH }}.tar
+        name: termux-docker-${{ env.TERMUX_ARCH }}-${{ github.sha }}
+        path: termux-docker-${{ env.TERMUX_ARCH }}.tar
