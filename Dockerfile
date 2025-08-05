@@ -30,14 +30,23 @@ RUN sh -T /dev/ptmx -c "$TERMUX__PREFIX/bin/dnsmasq -u root -g root --pid-file=/
     sleep 1 && \
     echo '#!/system/bin/sh' > /update.sh && \
     echo "PATH=$TERMUX__PREFIX/bin" >> /update.sh && \
+    echo "source $TERMUX__PREFIX/bin/termux-setup-package-manager" >> /update.sh && \
+    echo 'if [ "$TERMUX_APP_PACKAGE_MANAGER" = "apt" ]; then' >> /update.sh && \
     echo 'apt update' >> /update.sh && \
     echo 'apt upgrade -o Dpkg::Options::=--force-confnew -y' >> /update.sh && \
+    echo 'elif [ "$TERMUX_APP_PACKAGE_MANAGER" = "pacman" ]; then' >> /update.sh && \
+    echo 'pacman-key --init' >> /update.sh && \
+    echo 'pacman-key --populate' >> /update.sh && \
+    echo 'pacman -Syyu --noconfirm' >> /update.sh && \
+    echo 'fi' >> /update.sh && \
     chmod +x /update.sh && \
     su system -s /update.sh && \
-    rm -f /update.sh && \
-    rm -rf "${TERMUX__PREFIX}"/var/lib/apt/* && \
-    rm -rf "${TERMUX__PREFIX}"/var/log/apt/* && \
-    rm -rf "${TERMUX__CACHE_DIR}"/apt/*
+    rm -rf /update.sh \
+        "${TERMUX__PREFIX}"/var/lib/apt/* \
+        "${TERMUX__PREFIX}"/var/log/apt/* \
+        "${TERMUX__CACHE_DIR}"/apt/* \
+        "${TERMUX__PREFIX}"/var/cache/pacman/pkg/* \
+        "${TERMUX__PREFIX}"/var/log/pacman.log
 
 ##############################################################################
 # Create final image.

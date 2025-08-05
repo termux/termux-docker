@@ -41,6 +41,32 @@ if [ "${OCI}" = "docker" ] && $OCI --help 2>&1 | grep -q buildx; then
 	PLATFORM_ARG="--load --platform ${PLATFORM_TAG}"
 fi
 
+: "${TERMUX_PACKAGE_MANAGER:="apt"}"
+case "${TERMUX_PACKAGE_MANAGER}" in
+	apt)
+		TERMUX_DOCKER__IMAGE_NAME="termux/termux-docker"
+		TERMUX_DOCKER__BOOTSTRAP_VERSION="2023.02.19-r1%2Bapt-android-7"
+		TERMUX_DOCKER__BOOTSTRAP_SRCURL="https://github.com/termux/termux-packages/releases/download/bootstrap-${TERMUX_DOCKER__BOOTSTRAP_VERSION}/bootstrap-${TERMUX_ARCH}.zip"
+		declare -A REPO_BASE_URLS=(
+			["main"]="https://packages-cf.termux.dev/apt/termux-main/dists/stable/main"
+			["root"]="https://packages-cf.termux.dev/apt/termux-root/dists/root/stable"
+		)
+		;;
+	pacman)
+		TERMUX_DOCKER__IMAGE_NAME="termux/termux-docker-pacman"
+		TERMUX_DOCKER__BOOTSTRAP_VERSION="2026.02.01-r1%2Bpacman-android-7"
+		TERMUX_DOCKER__BOOTSTRAP_SRCURL="https://github.com/termux-pacman/termux-packages/releases/download/bootstrap-${TERMUX_DOCKER__BOOTSTRAP_VERSION}/bootstrap-${TERMUX_ARCH}.zip"
+		declare -A REPO_BASE_URLS=(
+			["main"]="https://service.termux-pacman.dev/main"
+			["root"]="https://service.termux-pacman.dev/root"
+		)
+		;;
+	*)
+		echo "Unsupported package manager \"${TERMUX_PACKAGE_MANAGER}\". Only 'apt' and 'pacman' are supported."
+		exit 1
+		;;
+esac
+
 # packages that are extracted, along with their dependencies,
 # on top of the bootstrap to form the termux-docker rootfs.
 # libandroid-stub is described in multiple places as existing explicitly
@@ -51,12 +77,6 @@ fi
 # but aosp-utils, aosp-libs and libandroid-stub will get automatically updated
 # by user-invoked instances of 'pkg upgrade' since they are in the main repository.
 TERMUX_DOCKER__DEPENDS="aosp-utils, libandroid-stub, dnsmasq"
-TERMUX_DOCKER__BOOTSTRAP_VERSION="2023.02.19-r1%2Bapt-android-7"
-TERMUX_DOCKER__BOOTSTRAP_SRCURL="https://github.com/termux/termux-packages/releases/download/bootstrap-${TERMUX_DOCKER__BOOTSTRAP_VERSION}/bootstrap-${TERMUX_ARCH}.zip"
-declare -A REPO_BASE_URLS=(
-	["main"]="https://packages-cf.termux.dev/apt/termux-main/dists/stable/main"
-	["root"]="https://packages-cf.termux.dev/apt/termux-root/dists/root/stable"
-)
 TERMUX_APP__PACKAGE_NAME="com.termux"
 TERMUX_APP__DATA_DIR="/data/data/$TERMUX_APP__PACKAGE_NAME"
 TERMUX__PREFIX_SUBDIR="usr"
@@ -78,7 +98,7 @@ declare -A PACKAGE_URLS
 
 # Check for some important utilities that may not be available for
 # some reason.
-for cmd in ar awk curl grep gzip find sed tar xargs xz zip; do
+for cmd in ar awk curl grep gzip find sed tar xargs xz zip jq; do
 	if [ -z "$(command -v $cmd)" ]; then
 		echo "[!] Utility '$cmd' is not available in PATH."
 		exit 1
@@ -93,9 +113,9 @@ done
 # one for architecture specified as '$1' argument. That depends on repository.
 # If repository has been created using "aptly", then architecture-independent
 # list is not available.
-read_package_lists() {
+read_package_lists_apt() {
 	local architecture
-	for architecture in all "$1"; do
+	for architecture in all "${TERMUX_ARCH}"; do
 		for repository in "${!REPO_BASE_URLS[@]}"; do
 			REPO_BASE_URL="${REPO_BASE_URLS[${repository}]}"
 			if [ ! -e "${TERMUX_DOCKER__TMPDIR}/${repository}-packages.${architecture}" ]; then
@@ -140,9 +160,8 @@ read_package_lists() {
 	done
 }
 
-# Download specified package, its dependencies and then extract *.deb files to
-# the root.
-pull_package() {
+# Download specified package, its dependencies and then extract *.deb files to the root
+pull_package_apt() {
 	local package_name=$1
 	local package_url="${PACKAGE_URLS[${package_name}]}"
 	local package_tmpdir="${TERMUX_DOCKER__PKGDIR}/${package_name}"
@@ -160,7 +179,7 @@ pull_package() {
 		local dep
 		for dep in $package_dependencies; do
 			if [ ! -e "${TERMUX_DOCKER__PKGDIR}/${dep}" ]; then
-				pull_package "$dep"
+				pull_package_apt "$dep"
 			fi
 		done
 		unset dep
@@ -222,6 +241,85 @@ pull_package() {
 	fi
 }
 
+read_package_lists_pacman() {
+	local repository
+	for repository in "${!REPO_BASE_URLS[@]}"; do
+		REPO_BASE_URL="${REPO_BASE_URLS[${repository}]}"
+		PATH_DB_PACKAGES="${TERMUX_DOCKER__TMPDIR}/${repository}_${TERMUX_ARCH}.json"
+		if [ ! -e "${PATH_DB_PACKAGES}" ]; then
+			echo "[*] Downloading ${repository} package list for architecture '${TERMUX_ARCH}'..."
+			curl --fail --location \
+				--output "${PATH_DB_PACKAGES}" \
+				"${REPO_BASE_URL}/${TERMUX_ARCH}/${repository}.json"
+		fi
+	done
+}
+
+read_db_packages_pacman() {
+	jq -r '."'${package_name}'"."'${1}'" | if type == "array" then .[] else . end' "${PATH_DB_PACKAGES}"
+}
+
+print_desc_package_pacman() {
+	echo -e "%${1}%\n${2}\n"
+}
+
+# Download specified package, its dependencies and then extract *.pkg.tar.xz files to the root
+pull_package_pacman() {
+	local package_name="$1"	local package_filename="" local package_url="" repository
+	for repository in "${!REPO_BASE_URLS[@]}"; do
+		REPO_BASE_URL="${REPO_BASE_URLS[${repository}]}"
+		PATH_DB_PACKAGES="${TERMUX_DOCKER__TMPDIR}/${repository}_${TERMUX_ARCH}.json"
+		local package_filename=$(read_db_packages_pacman "FILENAME")
+		package_url="${REPO_BASE_URL}/${TERMUX_ARCH}/${package_filename}"
+		if curl -sSf "${package_url}" >/dev/null 2>&1; then
+			break
+		fi
+	done
+	local package_tmpdir="${TERMUX_DOCKER__PKGDIR}/${package_name}"
+	mkdir -p "$package_tmpdir"
+
+	local package_dependencies=$(read_db_packages_pacman "DEPENDS" | sed 's/<.*$//g; s/>.*$//g; s/=.*$//g')
+
+	if [ "$package_dependencies" != "null" ]; then
+		local dep
+		for dep in $package_dependencies; do
+			if [ ! -e "${TERMUX_DOCKER__PKGDIR}/${dep}" ]; then
+				pull_package_pacman "$dep"
+			fi
+		done
+		unset dep
+	fi
+
+	if [ ! -e "$package_tmpdir/package.pkg.tar.xz" ]; then
+		echo "[*] Downloading '$package_name'..."
+		curl --fail --location --output "$package_tmpdir/package.pkg.tar.xz" "${package_url}"
+
+		echo "[*] Extracting '$package_name'..."
+		(cd "$package_tmpdir"
+			local package_desc="${package_name}-$(read_db_packages_pacman VERSION)"
+			mkdir -p "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}"
+			{
+				echo "%FILES%"
+				tar xvf package.pkg.tar.xz -C "$TERMUX_DOCKER__ROOTFS" .INSTALL .MTREE data 2> /dev/null | grep '^data/' || true
+			} >> "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/files"
+			mv "${TERMUX_DOCKER__ROOTFS}/.MTREE" "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/mtree"
+			if [ -f "${TERMUX_DOCKER__ROOTFS}/.INSTALL" ]; then
+				mv "${TERMUX_DOCKER__ROOTFS}/.INSTALL" "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/install"
+			fi
+			{
+				local keys_desc="VERSION BASE DESC URL ARCH BUILDDATE PACKAGER ISIZE GROUPS LICENSE REPLACES DEPENDS OPTDEPENDS CONFLICTS PROVIDES"
+				for i in "NAME ${package_name}" \
+					"INSTALLDATE $(date +%s)" \
+					"VALIDATION $(test $(read_db_packages_pacman PGPSIG) != 'null' && echo 'pgp' || echo 'sha256')"; do
+					print_desc_package_pacman ${i}
+				done
+				jq -r -j '."'${package_name}'" | to_entries | .[] | select(.key | contains('$(sed 's/^/"/; s/ /","/g; s/$/"/' <<< ${keys_desc})')) | "%",(if .key == "ISIZE" then "SIZE" else .key end),"%\n",.value,"\n\n" | if type == "array" then (.| join("\n")) else . end' \
+					"${PATH_DB_PACKAGES}"
+			} >> "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/desc"
+		)
+	fi
+}
+
 echo "[*] Regenerating rootfs..."
 rm -rf "${TERMUX_DOCKER__ROOTFS}"
 mkdir -p "${TERMUX_DOCKER__ROOTFS}"
@@ -243,10 +341,20 @@ done
 popd
 rm "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/SYMLINKS.txt"
 
-read_package_lists "${TERMUX_ARCH}"
-for package in "${TERMUX_DOCKER__DEPENDS_ARRAY[@]}"; do
-	pull_package "${package}"
-done
+case "${TERMUX_PACKAGE_MANAGER}" in
+	apt)
+		read_package_lists_apt
+		for package in "${TERMUX_DOCKER__DEPENDS_ARRAY[@]}"; do
+			pull_package_apt "${package}"
+		done
+		;;
+	pacman)
+		read_package_lists_pacman
+		for package in "${TERMUX_DOCKER__DEPENDS_ARRAY[@]}"; do
+			pull_package_pacman "${package}"
+		done
+		;;
+esac
 
 echo '[*] Linking /system to $PREFIX/opt/aosp...'
 ln -s "data/data/${TERMUX_APP__PACKAGE_NAME}/files/usr/opt/aosp" "${TERMUX_DOCKER__ROOTFS}/system"
@@ -296,9 +404,13 @@ find -L "${TERMUX_DOCKER__ROOTFS}${TERMUX__ROOTFS}" \
 	chmod g-rwx,o-rwx "{}" \;
 find -L "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/bin" \
 	"${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/libexec" \
-	"${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/lib/apt" \
 	-type f -exec \
 	chmod 700 "{}" \;
+if [ "${TERMUX_PACKAGE_MANAGER}" = "apt" ]; then
+	find -L "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/lib/apt" \
+		-type f -exec \
+		chmod 700 "{}" \;
+fi
 find -L "${TERMUX_DOCKER__ROOTFS}/system" \
 	-type f -executable -exec \
 	chmod 755 "{}" \;
@@ -309,7 +421,7 @@ find -L "${TERMUX_DOCKER__ROOTFS}/system" \
 echo "[*] Rootfs generation complete. Building Docker image..."
 $SUDO $OCI ${OCI_ARG} \
 	--no-cache \
-	-t termux/termux-docker:"${TERMUX_ARCH}" \
+	-t "${TERMUX_DOCKER__IMAGE_NAME}:${TERMUX_ARCH}" \
 	${PLATFORM_ARG} \
 	--build-arg TERMUX_DOCKER__ROOTFS="$(basename "${TERMUX_DOCKER__ROOTFS}")" \
 	--build-arg TERMUX__PREFIX="${TERMUX__PREFIX}" \
@@ -318,12 +430,12 @@ $SUDO $OCI ${OCI_ARG} \
 	.
 
 if [ "${1-}" = "publish" ]; then
-	$SUDO $OCI push termux/termux-docker:"${TERMUX_ARCH}"
+	$SUDO $OCI push "${TERMUX_DOCKER__IMAGE_NAME}:${TERMUX_ARCH}"
 fi
 
 if [ "${TERMUX_ARCH}" = "x86_64" ]; then
-	$SUDO $OCI tag termux/termux-docker:"${TERMUX_ARCH}" termux/termux-docker:latest
+	$SUDO $OCI tag "${TERMUX_DOCKER__IMAGE_NAME}:${TERMUX_ARCH}" "${TERMUX_DOCKER__IMAGE_NAME}:latest"
 	if [ "${1-}" = "publish" ]; then
-		$SUDO $OCI push termux/termux-docker:latest
+		$SUDO $OCI push "${TERMUX_DOCKER__IMAGE_NAME}:latest"
 	fi
 fi
