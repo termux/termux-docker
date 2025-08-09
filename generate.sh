@@ -16,6 +16,13 @@ else
 	SUDO=""
 fi
 
+case "$(uname -s)" in
+    Linux*)       BUILD_MACHINE=Linux;;
+    *BSD|Darwin*) BUILD_MACHINE=BSD;;
+    *)            BUILD_MACHINE="UNKNOWN:$(uname -s)"
+esac
+echo "[*] Operating System used to build termux-docker image: ${BUILD_MACHINE}"
+
 # This determines the architecture of the image being built,
 # but should also be an architecture that is compatible with the computer
 # running this script, so that the RUN step in the Dockerfile
@@ -25,9 +32,9 @@ if [ -z "${TERMUX_ARCH-}" ]; then
 fi
 
 case "$TERMUX_ARCH" in
-	aarch64)           TERMUX_ARCH="aarch64" PLATFORM_TAG="linux/arm64" ;;
-	armv7l|armv8l|arm) TERMUX_ARCH="arm"     PLATFORM_TAG="linux/arm/v7" ;;
-	x86_64)            TERMUX_ARCH="x86_64"  PLATFORM_TAG="linux/amd64" ;;
+	aarch64|arm64)     TERMUX_ARCH="aarch64" PLATFORM_TAG="linux/arm64" ;;
+	arm*)              TERMUX_ARCH="arm"     PLATFORM_TAG="linux/arm/v7" ;;
+	x86_64|amd64)      TERMUX_ARCH="x86_64"  PLATFORM_TAG="linux/amd64" ;;
 	i686)              TERMUX_ARCH="i686"    PLATFORM_TAG="linux/386" ;;
 	*)
 		echo "error: ${TERMUX_ARCH} is not a valid architecture!"
@@ -77,6 +84,7 @@ esac
 # but aosp-utils, aosp-libs and libandroid-stub will get automatically updated
 # by user-invoked instances of 'pkg upgrade' since they are in the main repository.
 TERMUX_DOCKER__DEPENDS="aosp-utils, libandroid-stub, dnsmasq"
+TERMUX_DOCKER__BUILD_DEPENDS="ar, awk, curl, docker, grep, gzip, find, sed, tar, xargs, xz, unzip, jq"
 TERMUX_APP__PACKAGE_NAME="com.termux"
 TERMUX_APP__DATA_DIR="/data/data/$TERMUX_APP__PACKAGE_NAME"
 TERMUX__PREFIX_SUBDIR="usr"
@@ -90,15 +98,27 @@ TERMUX_DOCKER__ROOTFS="$(pwd)/termux-docker-rootfs"
 TERMUX_DOCKER__TMPDIR="$(mktemp -d "/tmp/termux-docker-tmp.XXXXXXXX")"
 TERMUX_DOCKER__PKGDIR="${TERMUX_DOCKER__TMPDIR}/packages-${TERMUX_ARCH}"
 unset TERMUX_DOCKER__DEPENDS_ARRAY
+unset TERMUX_DOCKER__BUILD_DEPENDS_ARRAY
 IFS=, read -a TERMUX_DOCKER__DEPENDS_ARRAY <<< "${TERMUX_DOCKER__DEPENDS// /}"
+IFS=, read -a TERMUX_DOCKER__BUILD_DEPENDS_ARRAY <<< "${TERMUX_DOCKER__BUILD_DEPENDS// /}"
 unset PACKAGE_METADATA
 unset PACKAGE_URLS
 declare -A PACKAGE_METADATA
 declare -A PACKAGE_URLS
+AR=ar
+TAR=tar
 
 # Check for some important utilities that may not be available for
 # some reason.
-for cmd in ar awk curl grep gzip find sed tar xargs xz zip jq; do
+for cmd in "${TERMUX_DOCKER__BUILD_DEPENDS_ARRAY[@]}"; do
+	if [ "$cmd" = "ar" ] && [ -n "$(command -v gar)" ]; then
+		AR=gar
+		continue
+	fi
+	if [ "$cmd" = "tar" ] && [ -n "$(command -v gtar)" ]; then
+		TAR=gtar
+		continue
+	fi
 	if [ -z "$(command -v $cmd)" ]; then
 		echo "[!] Utility '$cmd' is not available in PATH."
 		exit 1
@@ -191,7 +211,7 @@ pull_package_apt() {
 
 		echo "[*] Extracting '$package_name'..."
 		(cd "$package_tmpdir"
-			ar x package.deb
+			$AR x package.deb
 
 			# data.tar may have extension different from .xz
 			if [ -f "./data.tar.xz" ]; then
@@ -214,17 +234,17 @@ pull_package_apt() {
 			fi
 
 			# Extract files.
-			tar xf "$data_archive" -C "$TERMUX_DOCKER__ROOTFS"
+			$TAR xf "$data_archive" -C "$TERMUX_DOCKER__ROOTFS"
 
 			# Register extracted files.
-			tar tf "$data_archive" | sed -E -e 's@^\./@/@' -e 's@^/$@/.@' -e 's@^([^./])@/\1@' > "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/dpkg/info/${package_name}.list"
+			$TAR tf "$data_archive" | sed -E -e 's@^\./@/@' -e 's@^/$@/.@' -e 's@^([^./])@/\1@' > "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/dpkg/info/${package_name}.list"
 
 			# Generate checksums (md5).
-			tar xf "$data_archive"
+			$TAR xf "$data_archive"
 			find data -type f -print0 | xargs -0 -r md5sum | sed 's@^\.$@@g' > "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/dpkg/info/${package_name}.md5sums"
 
 			# Extract metadata.
-			tar xf "$control_archive"
+			$TAR xf "$control_archive"
 			{
 				cat control
 				echo "Status: install ok installed"
@@ -300,7 +320,7 @@ pull_package_pacman() {
 			mkdir -p "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}"
 			{
 				echo "%FILES%"
-				tar xvf package.pkg.tar.xz -C "$TERMUX_DOCKER__ROOTFS" .INSTALL .MTREE data 2> /dev/null | grep '^data/' || true
+				$TAR xvf package.pkg.tar.xz -C "$TERMUX_DOCKER__ROOTFS" .INSTALL .MTREE data 2> /dev/null | grep '^data/' || true
 			} >> "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/files"
 			mv "${TERMUX_DOCKER__ROOTFS}/.MTREE" "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/mtree"
 			if [ -f "${TERMUX_DOCKER__ROOTFS}/.INSTALL" ]; then
@@ -411,14 +431,22 @@ if [ "${TERMUX_PACKAGE_MANAGER}" = "apt" ]; then
 		-type f -exec \
 		chmod 700 "{}" \;
 fi
+case "${BUILD_MACHINE}" in
+	BSD)
+		find_executable_arg="-perm +111"
+		;;
+	*)
+		find_executable_arg="-executable"
+		;;
+esac
 find -L "${TERMUX_DOCKER__ROOTFS}/system" \
-	-type f -executable -exec \
+	-type f $find_executable_arg -exec \
 	chmod 755 "{}" \;
 find -L "${TERMUX_DOCKER__ROOTFS}/system" \
-	-type f ! -executable -exec \
+	-type f ! $find_executable_arg -exec \
 	chmod 644 "{}" \;
 
-echo "[*] Rootfs generation complete. Building Docker image..."
+echo "[*] Rootfs generation complete. Building termux-docker image..."
 $SUDO $OCI ${OCI_ARG} \
 	--no-cache \
 	-t "${TERMUX_DOCKER__IMAGE_NAME}:${TERMUX_ARCH}" \
