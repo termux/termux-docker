@@ -71,7 +71,7 @@ docker run -it --security-opt seccomp:unconfined termux/termux-docker:aarch64
 Variant with custom build of Docker:
 
 > [!NOTE]
-> Example with Debian bookworm `armhf` host and the `docker.io` package. Assumes that [`deb-src` URIs](https://wiki.debian.org/Packaging/SourcePackage?action=show&redirect=SourcePackage#With_apt-get_source) and the [`devscripts` package](https://wiki.debian.org/Packaging#Suggested_tools_to_create_an_environment_for_packaging) are already installed, and that the current user is a member of the `docker` group.
+> Example with Debian trixie `armhf` host and the `docker.io` package. Assumes that [`deb-src` URIs](https://wiki.debian.org/Packaging/SourcePackage?action=show&redirect=SourcePackage#With_apt-get_source) and the [`devscripts` package](https://wiki.debian.org/Packaging#Suggested_tools_to_create_an_environment_for_packaging) are already installed, and that the current user is a member of the `docker` group.
 
 ```.sh
 sudo apt build-dep docker.io
