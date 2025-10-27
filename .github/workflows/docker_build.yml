@@ -78,7 +78,7 @@ jobs:
 
     - name: Store tar archive
       if: always()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: termux-docker-${{ matrix.CPU_ARCH }}-${{ github.sha }}
         path: termux-docker-${{ matrix.CPU_ARCH }}.tar
