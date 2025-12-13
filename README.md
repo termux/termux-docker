@@ -49,8 +49,9 @@ command:
 docker run --rm --privileged aptman/qus -s -- -p aarch64 arm
 ```
 
-Note that AArch64 and ARM containers sometimes work properly only in privileged
-mode, even on some real ARM devices. If you want your containers to have standard privileges, a custom
+Note that AArch64 and ARM containers (and in certain rare situations, some x86 containers)
+sometimes work properly only in privileged mode, even on some real ARM devices.
+If you want your containers to have standard privileges, a custom
 seccomp profile or a custom build of Docker might be required. The custom build
 of Docker limits the customizations to purely what is necessary for
 the `personality()` system call, leaving the security settings of all other system
@@ -134,7 +135,8 @@ Podman:
 
 There a number of known issues which may not be resolved:
 
-* ARM containers might require a custom seccomp profile or custom build of Docker to remove restrictions from the
+* ARM containers (and in certain rare situations, some x86 containers)
+  might require a custom seccomp profile or custom build of Docker to remove restrictions from the
   `personality()` system call.
 
 * When running certain multi threaded program in 32bit containers, the PIDs can 

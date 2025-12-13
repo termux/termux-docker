@@ -1,5 +1,6 @@
 This removes all restrictions from the personality() system call from within Docker, and
 is only necessary on some specific devices, including some ARM devices but not all ARM devices,
+and including some x86 devices in some rare situations but not all situations,
 and only when the --privileged and --security-opt arguments are either not working or not desired,
 which sometimes happens. This patch is designed for the docker.io package version 26.1.5 in
 Debian trixie: https://packages.debian.org/trixie/docker.io, but also works when rebased on other
