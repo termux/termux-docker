@@ -21,15 +21,15 @@ normal Termux installation.
 docker run -it termux/termux-docker:latest
 ```
 
-When using the tag `latest`, container will be 32 bit (i686 architecture).
+When using the tag `latest`, container will be 64 bit (x86_64 architecture).
 
 Other architecture can be installed using a different tags. Available
 tags:
 
 - `aarch64`
 - `arm`
-- `i686` (`latest`)
-- `x86_64`
+- `i686`
+- `x86_64` (`latest`)
 
 If architecture is not compatible with host, the additional setup will
 be needed. Read this document further to learn how you can run containers
@@ -39,7 +39,7 @@ of incompatible CPU architecture.
 The initial user of container must be root. Otherwise DNS will be broken
 because of `dnsmasq` server failure.
 
-### Running ARM containers on x86 host
+### Running ARM containers
 
 In order to run AArch64 container on x86(64) host, you need to setup
 QEMU emulator through binfmt_misc. This can be easily done by one
@@ -49,9 +49,13 @@ command:
 docker run --rm --privileged aptman/qus -s -- -p aarch64 arm
 ```
 
-Note that AArch64 and ARM containers work properly only in privileged
-mode. If you want your containers to have standard privileges, a custom
-seccomp profile is required.
+Note that AArch64 and ARM containers (and in certain rare situations, some x86 containers)
+sometimes work properly only in privileged mode, even on some real ARM devices.
+If you want your containers to have standard privileges, a custom
+seccomp profile or a custom build of Docker might be required. The custom build
+of Docker limits the customizations to purely what is necessary for
+the `personality()` system call, leaving the security settings of all other system
+calls untouched.
 
 Variant with privileged container:
 
@@ -64,6 +68,25 @@ Variant with seccomp unconfined profile:
 ```.sh
 docker run -it --security-opt seccomp:unconfined termux/termux-docker:aarch64
 ```
+
+Variant with custom build of Docker:
+
+> [!NOTE]
+> Example with Debian trixie `armhf` host and the `docker.io` package. Assumes that [`deb-src` URIs](https://wiki.debian.org/Packaging/SourcePackage?action=show&redirect=SourcePackage#With_apt-get_source) and the [`devscripts` package](https://wiki.debian.org/Packaging#Suggested_tools_to_create_an_environment_for_packaging) are already installed, and that the current user is a member of the `docker` group.
+
+```.sh
+sudo apt build-dep docker.io
+apt source docker.io
+cp /path/to/termux-docker/custom-docker-with-unrestricted-personality.patch docker.io-*/debian/patches/
+echo 'custom-docker-with-unrestricted-personality.patch' >> docker.io-*/debian/patches/series 
+cd docker.io-*/
+DEB_BUILD_OPTIONS=nocheck debuild -b -uc -us
+rm ../golang*
+sudo apt install ../*.deb
+docker run -it termux/termux-docker:arm
+```
+
+You might then want to temporarily use `sudo apt-mark hold docker.io` to ensure the package is not automatically upgraded, causing termux-docker to stop working on the device in the future, but **not upgrading can be a security risk**. If using the patch, it is recommended to patch and recompile the Docker daemon after every upgrade.
 
 ### Non-interactive execution of commands
 
@@ -99,20 +122,21 @@ docker run -it --entrypoint /entrypoint_root.sh termux/termux-docker:latest
 Docker:
 
 ```.sh
-./build-all.sh
+./generate.sh
 ```
 
 Podman:
 
 ```.sh
-./build-all.sh --podman
+./generate.sh --podman
 ```
 
 ## Known issues
 
 There a number of known issues which may not be resolved:
 
-* ARM containers may require a custom seccomp profile to remove restrictions from
+* ARM containers (and in certain rare situations, some x86 containers)
+  might require a custom seccomp profile or custom build of Docker to remove restrictions from the
   `personality()` system call.
 
 * When running certain multi threaded program in 32bit containers, the PIDs can 
