@@ -27,9 +27,11 @@ SHELL ["sh", "-c"]
 # so this odd-looking script forces the update process
 # to work using the -s argument of toybox-su instead, which is working.
 RUN sh -T /dev/ptmx -c "$TERMUX__PREFIX/bin/dnsmasq -u root -g root --pid-file=/dnsmasq.pid" && \
-    sleep 1 && \
     echo '#!/system/bin/sh' > /update.sh && \
     echo "PATH=$TERMUX__PREFIX/bin" >> /update.sh && \
+    echo 'while [ ! -f /dnsmasq.pid ]; do' >> /update.sh && \
+    echo 'sleep 1' >> /update.sh && \
+    echo 'done' >> /update.sh && \
     echo "source $TERMUX__PREFIX/bin/termux-setup-package-manager" >> /update.sh && \
     echo 'if [ "$TERMUX_APP_PACKAGE_MANAGER" = "apt" ]; then' >> /update.sh && \
     echo 'apt update' >> /update.sh && \
