@@ -64,8 +64,8 @@ case "${TERMUX_PACKAGE_MANAGER}" in
 		TERMUX_DOCKER__BOOTSTRAP_VERSION="2026.04.26-r1%2Bpacman.android-7"
 		TERMUX_DOCKER__BOOTSTRAP_SRCURL="https://github.com/termux-pacman/termux-packages/releases/download/bootstrap-${TERMUX_DOCKER__BOOTSTRAP_VERSION}/bootstrap-${TERMUX_ARCH}.zip"
 		declare -A REPO_BASE_URLS=(
-			["main"]="https://service.termux-pacman.dev/main"
-			["root"]="https://service.termux-pacman.dev/root"
+			["main"]="https://sync.termux-pacman.dev/main"
+			["root"]="https://sync.termux-pacman.dev/root"
 		)
 		;;
 	*)
