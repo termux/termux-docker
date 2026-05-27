@@ -70,11 +70,7 @@ jobs:
 
     - name: Push to Docker Hub
       if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
-      run: |
-        docker push ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:${{ env.TERMUX_ARCH }}
-        if [ ${{ env.TERMUX_ARCH }} = x86_64 ]; then
-          docker push ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:latest
-        fi
+      run: docker push ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:${{ env.TERMUX_ARCH }}
 
     - name: Export container as tar archive
       if: always()
@@ -94,3 +90,40 @@ jobs:
       with:
         name: termux-docker-${{ env.TERMUX_PACKAGE_MANAGER }}-${{ env.TERMUX_ARCH }}-${{ github.sha }}
         path: termux-docker-${{ env.TERMUX_PACKAGE_MANAGER }}-${{ env.TERMUX_ARCH }}.tar
+
+  multiplatform:
+    strategy:
+      matrix:
+        include:
+          - package-manager: apt
+          - package-manager: pacman
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request' && github.repository == 'termux/termux-docker'
+    needs: generate
+    runs-on: ubuntu-24.04
+    steps:
+
+    - name: Set variables
+      run: |
+        if [ ${{ matrix.package-manager }} = apt ]; then
+          echo "TERMUX_DOCKER__IMAGE_NAME=termux/termux-docker" >> $GITHUB_ENV
+        elif [ ${{ matrix.package-manager }} = pacman ]; then
+          echo "TERMUX_DOCKER__IMAGE_NAME=termux/termux-docker-pacman" >> $GITHUB_ENV
+        fi
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: grimler
+        password: ${{ secrets.GRIMLER_DOCKER_TOKEN }}
+
+    - name: Create multiplatform tag
+      run: |
+        docker manifest create \
+          ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:latest \
+          ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:i686 \
+          ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:x86_64 \
+          ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:arm \
+          ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:aarch64
+
+    - name: Push multiplatform tag to Docker Hub
+      run: docker manifest push ${{ env.TERMUX_DOCKER__IMAGE_NAME }}:latest
