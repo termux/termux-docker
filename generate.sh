@@ -460,10 +460,3 @@ $SUDO $OCI ${OCI_ARG} \
 if [ "${1-}" = "publish" ]; then
 	$SUDO $OCI push "${TERMUX_DOCKER__IMAGE_NAME}:${TERMUX_ARCH}"
 fi
-
-if [ "${TERMUX_ARCH}" = "x86_64" ]; then
-	$SUDO $OCI tag "${TERMUX_DOCKER__IMAGE_NAME}:${TERMUX_ARCH}" "${TERMUX_DOCKER__IMAGE_NAME}:latest"
-	if [ "${1-}" = "publish" ]; then
-		$SUDO $OCI push "${TERMUX_DOCKER__IMAGE_NAME}:latest"
-	fi
-fi

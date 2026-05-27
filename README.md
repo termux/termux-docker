@@ -18,18 +18,20 @@ This will start interactive login shell. Everything will look like in a
 normal Termux installation.
 
 ```.sh
-docker run -it termux/termux-docker:latest
+docker run -it termux/termux-docker
 ```
 
-When using the tag `latest`, container will be 64 bit (x86_64 architecture).
+When using no tag, or the tag `latest`, the container will automatically
+match the device architecture.
 
-Other architecture can be installed using a different tags. Available
-tags:
+Other architectures can be installed using different tags.
+Available tags:
 
 - `aarch64`
 - `arm`
 - `i686`
-- `x86_64` (`latest`)
+- `x86_64`
+- `latest` (multiplatform)
 
 If architecture is not compatible with host, the additional setup will
 be needed. Read this document further to learn how you can run containers
@@ -72,7 +74,7 @@ docker run -it --security-opt seccomp:unconfined termux/termux-docker:aarch64
 Variant with custom build of Docker:
 
 > [!NOTE]
-> Example with Debian trixie `armhf` host and the `docker.io` package. Assumes that [`deb-src` URIs](https://wiki.debian.org/Packaging/SourcePackage?action=show&redirect=SourcePackage#With_apt-get_source) and the [`devscripts` package](https://wiki.debian.org/Packaging#Suggested_tools_to_create_an_environment_for_packaging) are already installed, and that the current user is a member of the `docker` group.
+> Example with Debian trixie and the `docker.io` package. Assumes that [`deb-src` URIs](https://wiki.debian.org/Packaging/SourcePackage?action=show&redirect=SourcePackage#With_apt-get_source) and the [`devscripts` package](https://wiki.debian.org/Packaging#Suggested_tools_to_create_an_environment_for_packaging) are already installed, and that the current user is a member of the `docker` group.
 
 ```.sh
 sudo apt build-dep docker.io
@@ -83,7 +85,7 @@ cd docker.io-*/
 DEB_BUILD_OPTIONS=nocheck debuild -b -uc -us
 rm ../golang*
 sudo apt install ../*.deb
-docker run -it termux/termux-docker:arm
+docker run -it termux/termux-docker
 ```
 
 You might then want to temporarily use `sudo apt-mark hold docker.io` to ensure the package is not automatically upgraded, causing termux-docker to stop working on the device in the future, but **not upgrading can be a security risk**. If using the patch, it is recommended to patch and recompile the Docker daemon after every upgrade.
@@ -96,7 +98,7 @@ command line.
 Example:
 
 ```.sh
-docker run -it --rm termux/termux-docker:latest bash -c "apt update && apt install -yq clang"
+docker run -it --rm termux/termux-docker bash -c "apt update && apt install -yq clang"
 ```
 
 ### Root shell
@@ -114,7 +116,7 @@ The provided images have 2 entry points:
 Usage example:
 
 ```.sh
-docker run -it --entrypoint /entrypoint_root.sh termux/termux-docker:latest
+docker run -it --entrypoint /entrypoint_root.sh termux/termux-docker
 ```
 
 ## Building image
