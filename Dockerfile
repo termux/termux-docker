@@ -8,41 +8,44 @@ ARG TERMUX__CACHE_DIR
 
 # Install generated rootfs containing:
 # - termux bootstrap
-# - aosp-libs (bionic libc, linker, boringssl, zlib, libicuuc, debuggerd)
-# - aosp-utils (toybox, mksh, iputils)
+# - aosp-libs (bionic libc, linker, boringssl, zlib, libicuuc, debuggerd, depends on resolv-conf)
+# - aosp-utils (toybox, grep, mksh, iputils)
 # - libandroid-stub
-# - dnsmasq
 # Since /system is now a symbolic link to $PREFIX/opt/aosp,
 # which has contents that can be updated by the system user via apt,
-# the entire rootfs is now owned by the system user (1000:1000).
+# the entire rootfs is now owned by the system user (1000:1000),
+# except for /data and /data/data (see below)
 COPY --chown=1000:1000 ${TERMUX_DOCKER__ROOTFS} /
 
 # Docker uses /bin/sh by default, but we don't have it.
-ENV PATH=/system/bin
+ENV PATH=${TERMUX__PREFIX}/bin
 SHELL ["sh", "-c"]
 
+# Prevent the unprivileged user from having read access to
+# /data and /data/data just like all real Android devices
+# this will enable termux-docker to reproduce bugs (for debugging and development)
+# like this one:
+# https://github.com/termux/termux-packages/issues/28433
+# but unfortunately it won't enable termux-docker to reproduce bugs that actually
+# require / to be inaccessible to reproduce, like this one:
+# https://github.com/termux-user-repository/tur/issues/1897
+# it doesn't seem possible to set chmod 771 persistently on /
+# within docker, since it reverts to 755 immediately when the container is run.
+RUN chown root:root /data/ /data/data/
+RUN chmod 771 /data/ /data/data/
+
 # Install updates and cleanup
-# Start dnsmasq to resolve hostnames, and,
-# for some reason the -c argument of toybox-su is not working,
-# so this odd-looking script forces the update process
-# to work using the -s argument of toybox-su instead, which is working.
-RUN sh -T /dev/ptmx -c "$TERMUX__PREFIX/bin/dnsmasq -u root -g root --pid-file=/dnsmasq.pid" && \
-    sleep 1 && \
-    echo '#!/system/bin/sh' > /update.sh && \
-    echo "PATH=$TERMUX__PREFIX/bin" >> /update.sh && \
-    echo "source $TERMUX__PREFIX/bin/termux-setup-package-manager" >> /update.sh && \
-    echo 'if [ "$TERMUX_APP_PACKAGE_MANAGER" = "apt" ]; then' >> /update.sh && \
-    echo 'apt update' >> /update.sh && \
-    echo 'apt upgrade -o Dpkg::Options::=--force-confnew -y' >> /update.sh && \
-    echo 'elif [ "$TERMUX_APP_PACKAGE_MANAGER" = "pacman" ]; then' >> /update.sh && \
-    echo 'pacman-key --init' >> /update.sh && \
-    echo 'pacman-key --populate' >> /update.sh && \
-    echo 'pacman -Syyu --noconfirm' >> /update.sh && \
-    echo 'fi' >> /update.sh && \
-    chmod +x /update.sh && \
-    su system -s /update.sh && \
-    rm -rf /update.sh \
-        "${TERMUX__PREFIX}"/var/lib/apt/* \
+USER 1000:1000
+RUN . $TERMUX__PREFIX/bin/termux-setup-package-manager && \
+    if [ "$TERMUX_APP_PACKAGE_MANAGER" = "apt" ]; then \
+        apt update && \
+        apt upgrade -o Dpkg::Options::=--force-confnew -y; \
+    elif [ "$TERMUX_APP_PACKAGE_MANAGER" = "pacman" ]; then \
+        pacman-key --init && \
+        pacman-key --populate && \
+        pacman -Syyu --noconfirm; \
+    fi && \
+    rm -rf "${TERMUX__PREFIX}"/var/lib/apt/* \
         "${TERMUX__PREFIX}"/var/log/apt/* \
         "${TERMUX__CACHE_DIR}"/apt/* \
         "${TERMUX__PREFIX}"/var/cache/pacman/pkg/* \
