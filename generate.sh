@@ -52,20 +52,20 @@ fi
 case "${TERMUX_PACKAGE_MANAGER}" in
 	apt)
 		TERMUX_DOCKER__IMAGE_NAME="termux/termux-docker"
-		TERMUX_DOCKER__BOOTSTRAP_VERSION="2026.04.26-r1%2Bapt.android-7"
+		TERMUX_DOCKER__BOOTSTRAP_VERSION="2026.06.07-r1%2Bapt.android-7"
 		TERMUX_DOCKER__BOOTSTRAP_SRCURL="https://github.com/termux/termux-packages/releases/download/bootstrap-${TERMUX_DOCKER__BOOTSTRAP_VERSION}/bootstrap-${TERMUX_ARCH}.zip"
 		declare -A REPO_BASE_URLS=(
 			["main"]="https://packages-cf.termux.dev/apt/termux-main/dists/stable/main"
-			["root"]="https://packages-cf.termux.dev/apt/termux-root/dists/root/stable"
+			# ["root"]="https://packages-cf.termux.dev/apt/termux-root/dists/root/stable"
 		)
 		;;
 	pacman)
 		TERMUX_DOCKER__IMAGE_NAME="termux/termux-docker-pacman"
-		TERMUX_DOCKER__BOOTSTRAP_VERSION="2026.04.26-r1%2Bpacman.android-7"
+		TERMUX_DOCKER__BOOTSTRAP_VERSION="2026.06.07-r1%2Bpacman.android-7"
 		TERMUX_DOCKER__BOOTSTRAP_SRCURL="https://github.com/termux-pacman/termux-packages/releases/download/bootstrap-${TERMUX_DOCKER__BOOTSTRAP_VERSION}/bootstrap-${TERMUX_ARCH}.zip"
 		declare -A REPO_BASE_URLS=(
 			["main"]="https://sync.termux-pacman.dev/main"
-			["root"]="https://sync.termux-pacman.dev/root"
+			# ["root"]="https://sync.termux-pacman.dev/root"
 		)
 		;;
 	*)
@@ -73,17 +73,13 @@ case "${TERMUX_PACKAGE_MANAGER}" in
 		exit 1
 		;;
 esac
+echo "[*] Package manager that will be installed in termux-docker image: ${TERMUX_PACKAGE_MANAGER}"
 
 # packages that are extracted, along with their dependencies,
 # on top of the bootstrap to form the termux-docker rootfs.
 # libandroid-stub is described in multiple places as existing explicitly
 # for use with termux-docker, so pulling it in here.
-# dnsmasq will not get automatically updated during 'pkg upgrade' by the user
-# after termux-docker has been installed, since root-repo is not installed for now
-# to imply that other root-packages are not directly supported,
-# but aosp-utils, aosp-libs and libandroid-stub will get automatically updated
-# by user-invoked instances of 'pkg upgrade' since they are in the main repository.
-TERMUX_DOCKER__DEPENDS="aosp-utils, libandroid-stub, dnsmasq"
+TERMUX_DOCKER__DEPENDS="aosp-utils, libandroid-stub"
 TERMUX_DOCKER__BUILD_DEPENDS="ar, awk, curl, docker, grep, gzip, find, sed, tar, xargs, xz, unzip, jq"
 TERMUX_APP__PACKAGE_NAME="com.termux"
 TERMUX_APP__DATA_DIR="/data/data/$TERMUX_APP__PACKAGE_NAME"
@@ -198,7 +194,12 @@ pull_package_apt() {
 	if [ -n "$package_dependencies" ]; then
 		local dep
 		for dep in $package_dependencies; do
-			if [ ! -e "${TERMUX_DOCKER__PKGDIR}/${dep}" ]; then
+			# Since termux-docker builds on top of an existing bootstrap,
+			# the preinstalled packages from the bootstrap also need
+			# to be checked for duplicate dependencies
+			if [ ! -e "${TERMUX_DOCKER__PKGDIR}/${dep}" ] && \
+				! grep -q "^Package: $dep$" \
+				"${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/dpkg/status"; then
 				pull_package_apt "$dep"
 			fi
 		done
@@ -321,7 +322,7 @@ pull_package_pacman() {
 			{
 				echo "%FILES%"
 				$TAR xvf package.pkg.tar.xz -C "$TERMUX_DOCKER__ROOTFS" .INSTALL .MTREE data 2> /dev/null | grep '^data/' || true
-			} >> "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/files"
+			} > "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/files"
 			mv "${TERMUX_DOCKER__ROOTFS}/.MTREE" "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/mtree"
 			if [ -f "${TERMUX_DOCKER__ROOTFS}/.INSTALL" ]; then
 				mv "${TERMUX_DOCKER__ROOTFS}/.INSTALL" "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/install"
@@ -335,7 +336,7 @@ pull_package_pacman() {
 				done
 				jq -r -j '."'${package_name}'" | to_entries | .[] | select(.key | contains('$(sed 's/^/"/; s/ /","/g; s/$/"/' <<< ${keys_desc})')) | "%",(if .key == "ISIZE" then "SIZE" else .key end),"%\n",.value,"\n\n" | if type == "array" then (.| join("\n")) else . end' \
 					"${PATH_DB_PACKAGES}"
-			} >> "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/desc"
+			} > "${TERMUX_DOCKER__ROOTFS}${TERMUX__PREFIX}/var/lib/pacman/local/${package_desc}/desc"
 		)
 	fi
 }

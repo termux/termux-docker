@@ -33,13 +33,15 @@ Available tags:
 - `x86_64`
 - `latest` (multiplatform)
 
+The other package manager for Termux, pacman, is available in a separate image:
+
+```.sh
+docker run -it termux/termux-docker-pacman
+```
+
 If architecture is not compatible with host, the additional setup will
 be needed. Read this document further to learn how you can run containers
 of incompatible CPU architecture.
-
-**Important note**: do not pass `--user` option to Docker command line.
-The initial user of container must be root. Otherwise DNS will be broken
-because of `dnsmasq` server failure.
 
 ### Running ARM containers
 
@@ -131,6 +133,13 @@ Podman:
 
 ```.sh
 ./generate.sh --podman
+```
+
+Pacman:
+
+```.sh
+export TERMUX_PACKAGE_MANAGER=pacman
+./generate.sh
 ```
 
 ## Known issues
