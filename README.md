@@ -107,18 +107,12 @@ docker run -it --rm termux/termux-docker bash -c "apt update && apt install -yq 
 
 By default root shell is disabled in container as Termux doesn't really
 support usage of package manager under root account. In cases where you
-really need shell with root privileges, entrypoint should be overridden.
-
-The provided images have 2 entry points:
-
-- `/entrypoint.sh` - the standard one which drops privileges to `system`
-  user.
-- `/entrypoint_root.sh` - alternate entrypoint that does not drop privileges.
+really need shell with root privileges, the user should be overridden.
 
 Usage example:
 
 ```.sh
-docker run -it --entrypoint /entrypoint_root.sh termux/termux-docker
+docker run -it --user 0 termux/termux-docker
 ```
 
 ## Building image
