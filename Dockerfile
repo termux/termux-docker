@@ -73,5 +73,5 @@ COPY --from=bootstrap / /
 WORKDIR ${TERMUX__HOME}
 SHELL ["sh", "-c"]
 
-ENTRYPOINT ["/entrypoint.sh"]
+USER 1000:1000
 CMD ["login"]
