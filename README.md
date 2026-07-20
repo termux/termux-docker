@@ -1,6 +1,6 @@
 # Termux environment for Docker/Podman.
 
-A [Termux](https://termux.com) environment packaged into Docker image.
+A [Termux](https://termux.dev) environment packaged into Docker image.
 Environment doesn't have Android runtime components, so certain things will
 not be available (DalvikVM, OpenSLES, etc...).
 
