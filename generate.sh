@@ -410,12 +410,6 @@ root:x:0:0:root:/:/system/bin/sh
 system:x:1000:1000:system:${TERMUX__ROOTFS}/home:${TERMUX__PREFIX}/bin/login
 EOF
 
-echo "[*] Copying entrypoint.sh to /..."
-cp entrypoint.sh "${TERMUX_DOCKER__ROOTFS}/"
-
-echo "[*] Copying entrypoint_root.sh to /..."
-cp entrypoint_root.sh "${TERMUX_DOCKER__ROOTFS}/"
-
 echo "[*] Setting permissions..."
 find -L "${TERMUX_DOCKER__ROOTFS}/data" \
 	-type d -exec \
